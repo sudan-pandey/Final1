@@ -1,0 +1,4 @@
+config/mail.php
+.env
+uploads/
+dev_server.log
