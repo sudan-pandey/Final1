@@ -20,7 +20,22 @@ function escape($value) {
  * @return string HTML string
  */
 function renderClubLogo($logoFilename, $clubName, $size = 60, $extraClass = '') {
-    $sizeStyle = "width: {$size}px; height: {$size}px;";
+    $svgW = 30;
+    $svgH = 30;
+
+    if (is_array($size)) {
+        $w = $size[0];
+        $h = $size[1] ?? $size[0];
+        $sizeStyle = "width: {$w}px; height: {$h}px;";
+        $svgW = round($w * 0.4);
+        $svgH = round($h * 0.4);
+    } elseif (is_numeric($size)) {
+        $sizeStyle = "width: {$size}px; height: {$size}px;";
+        $svgW = round($size * 0.5);
+        $svgH = round($size * 0.5);
+    } else {
+        $sizeStyle = $size;
+    }
 
     // Check if relative path or absolute path exists for logo file
     $logoPath = '../uploads/clubs/' . $logoFilename;
@@ -48,16 +63,15 @@ function renderClubLogo($logoFilename, $clubName, $size = 60, $extraClass = '') 
     }
 
     // Default icon/placeholder SVG or initial letter badge
-    $initial = strtoupper(substr($clubName, 0, 1));
-    $fontSize = max(0.9, round($size * 0.4 / 16, 2)) . 'rem';
+    $fontSize = '1.2rem';
 
     return sprintf(
         '<div class="club-logo-placeholder %s" style="%s border-radius: 12px; background: var(--border-color, #334155); color: #818cf8; display: inline-flex; align-items: center; justify-content: center; font-size: %s; font-weight: 700; flex-shrink: 0; border: 1px solid var(--border-color);"><svg width="%d" height="%d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity: 0.9;"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-3"></path><path d="M9 9l0 .01"></path><path d="M9 12l0 .01"></path></svg></div>',
         escape($extraClass),
         $sizeStyle,
         $fontSize,
-        round($size * 0.5),
-        round($size * 0.5)
+        $svgW,
+        $svgH
     );
 }
 
@@ -71,11 +85,53 @@ function renderClubLogo($logoFilename, $clubName, $size = 60, $extraClass = '') 
 function getUnreadAnnouncementsCount($pdo, $userId) {
     if (!$userId || !$pdo) return 0;
     try {
-        $stmt = $pdo->prepare("SELECT COUNT(*)
-                               FROM announcements a
-                               LEFT JOIN announcement_reads ar ON a.id = ar.announcement_id AND ar.user_id = ?
-                               WHERE ar.announcement_id IS NULL");
-        $stmt->execute([$userId]);
+        require_once __DIR__ . '/auth.php';
+        $userRole = $_SESSION['user_role'] ?? 'student';
+
+        if ($userRole === 'admin') {
+            $stmt = $pdo->prepare("SELECT COUNT(*)
+                                   FROM announcements a
+                                   LEFT JOIN announcement_reads ar ON a.id = ar.announcement_id AND ar.user_id = ?
+                                   WHERE ar.announcement_id IS NULL");
+            $stmt->execute([$userId]);
+        } elseif ($userRole === 'club_head') {
+            $club = getOwnClub($pdo, $userId);
+            $clubId = $club ? intval($club['id']) : 0;
+            if ($clubId > 0) {
+                $stmt = $pdo->prepare("SELECT COUNT(*)
+                                       FROM announcements a
+                                       LEFT JOIN announcement_reads ar ON a.id = ar.announcement_id AND ar.user_id = ?
+                                       WHERE ar.announcement_id IS NULL
+                                         AND (a.scope = 'GLOBAL' OR (a.scope IN ('CLUB', 'PRIVATE') AND a.club_id = ?))");
+                $stmt->execute([$userId, $clubId]);
+            } else {
+                $stmt = $pdo->prepare("SELECT COUNT(*)
+                                       FROM announcements a
+                                       LEFT JOIN announcement_reads ar ON a.id = ar.announcement_id AND ar.user_id = ?
+                                       WHERE ar.announcement_id IS NULL
+                                         AND a.scope = 'GLOBAL'");
+                $stmt->execute([$userId]);
+            }
+        } else {
+            // Student
+            $membership = getActiveMembership($pdo, $userId);
+            $clubId = $membership ? intval($membership['club_id']) : 0;
+            if ($clubId > 0) {
+                $stmt = $pdo->prepare("SELECT COUNT(*)
+                                       FROM announcements a
+                                       LEFT JOIN announcement_reads ar ON a.id = ar.announcement_id AND ar.user_id = ?
+                                       WHERE ar.announcement_id IS NULL
+                                         AND (a.scope = 'GLOBAL' OR (a.scope IN ('CLUB', 'PRIVATE') AND a.club_id = ?))");
+                $stmt->execute([$userId, $clubId]);
+            } else {
+                $stmt = $pdo->prepare("SELECT COUNT(*)
+                                       FROM announcements a
+                                       LEFT JOIN announcement_reads ar ON a.id = ar.announcement_id AND ar.user_id = ?
+                                       WHERE ar.announcement_id IS NULL
+                                         AND a.scope = 'GLOBAL'");
+                $stmt->execute([$userId]);
+            }
+        }
         return intval($stmt->fetchColumn());
     } catch (Exception $e) {
         return 0;

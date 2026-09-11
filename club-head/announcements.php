@@ -27,31 +27,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $action = $_POST['action'] ?? '';
 
         if ($action === 'create') {
+            $scope = trim($_POST['scope'] ?? 'CLUB');
+            if (!in_array($scope, ['CLUB', 'PRIVATE'])) {
+                $scope = 'CLUB';
+            }
+
+            $priority = trim($_POST['priority'] ?? 'Announcement');
+            if (!in_array($priority, ['Announcement', 'Event', 'Urgent', 'General'])) {
+                $priority = 'Announcement';
+            }
+
             $title = trim($_POST['title'] ?? '');
-            $priority = trim($_POST['priority'] ?? 'General');
             $content = trim($_POST['content'] ?? '');
 
             if (empty($title) || empty($content)) {
                 $error = "Title and content cannot be blank.";
             } else {
                 try {
-                    $ins = $pdo->prepare("INSERT INTO announcements (club_id, title, priority, content, created_by) VALUES (?, ?, ?, ?, ?)");
-                    $ins->execute([$clubId, $title, $priority, $content, $userId]);
-                    $success = "Announcement published successfully!";
+                    $ins = $pdo->prepare("INSERT INTO announcements (club_id, scope, title, priority, content, created_by) VALUES (?, ?, ?, ?, ?, ?)");
+                    $ins->execute([$clubId, $scope, $title, $priority, $content, $userId]);
+                    $success = ($scope === 'PRIVATE') ? "Private club message posted successfully!" : "Club announcement published successfully!";
                 } catch (PDOException $e) {
-                    try {
-                        $ins = $pdo->prepare("INSERT INTO announcements (club_id, title, content, created_by) VALUES (?, ?, ?, ?)");
-                        $ins->execute([$clubId, $title, $content, $userId]);
-                        $success = "Announcement published successfully!";
-                    } catch (PDOException $ex) {
-                        $error = "Database Error: " . $ex->getMessage();
-                    }
+                    $error = "Database Error: " . $e->getMessage();
                 }
             }
         } elseif ($action === 'delete') {
             $annId = intval($_POST['announcement_id'] ?? 0);
             if ($annId > 0) {
-                // Verify ownership
+                // Verify ownership: must belong to head's club
                 $chk = $pdo->prepare("SELECT id FROM announcements WHERE id = ? AND club_id = ? LIMIT 1");
                 $chk->execute([$annId, $clubId]);
                 if ($chk->fetch()) {
@@ -66,15 +69,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch centralized announcements from ALL clubs and system admin
+// Fetch announcements for this Club Head (Global + Own Club notices & Private Messages)
 try {
-    $stmt = $pdo->query("SELECT a.*,
-                                COALESCE(c.name, 'System Admin') AS sender_name,
-                                u.full_name AS publisher
-                         FROM announcements a
-                         LEFT JOIN clubs c ON a.club_id = c.id
-                         LEFT JOIN users u ON a.created_by = u.id
-                         ORDER BY a.created_at DESC");
+    $stmt = $pdo->prepare("SELECT a.*,
+                                  COALESCE(c.name, 'System Admin') AS sender_name,
+                                  u.full_name AS publisher
+                           FROM announcements a
+                           LEFT JOIN clubs c ON a.club_id = c.id
+                           LEFT JOIN users u ON a.created_by = u.id
+                           WHERE a.scope = 'GLOBAL'
+                              OR (a.club_id = ? AND a.scope IN ('CLUB', 'PRIVATE'))
+                           ORDER BY a.created_at DESC");
+    $stmt->execute([$clubId]);
     $announcements = $stmt->fetchAll();
 
     // Automatically mark all current announcements as read when club head views page
@@ -107,59 +113,106 @@ try {
 
         <!-- Create Announcement Form -->
         <div class="feature-card" style="margin-top: 20px; margin-bottom: 30px;">
-            <h3>Broadcast New Announcement</h3>
+            <h3>Post Club Notice / Private Message</h3>
             <form action="announcements.php" method="POST" style="margin-top: 15px;">
                 <?php csrfInput(); ?>
                 <input type="hidden" name="action" value="create">
 
                 <div class="form-group">
-                    <label for="title">Announcement Title</label>
-                    <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Mandatory Stand-up Meeting tomorrow" required>
+                    <label for="scope">Channel / Audience</label>
+                    <select id="scope" name="scope" class="form-control" onchange="updateNoticeNotice()">
+                        <option value="CLUB">🏛️ Standard Club Broadcast (All <?php echo escape($club['name']); ?> Members)</option>
+                        <option value="PRIVATE">🔒 Private Communication Channel (Members of <?php echo escape($club['name']); ?> Only)</option>
+                    </select>
+                    <small id="private_notice_help" class="text-muted" style="display: none; margin-top: 5px; color: #a78bfa;">🔒 Private Channel Messages are restricted exclusively to authorized members of this club.</small>
                 </div>
 
                 <div class="form-group">
-                    <label for="priority">Priority / Notice Tag</label>
+                    <label for="priority">Notice Type</label>
                     <select id="priority" name="priority" class="form-control">
-                        <option value="General">General</option>
-                        <option value="Urgent">Urgent</option>
-                        <option value="Event">Event</option>
+                        <option value="Announcement">📢 Announcement (General updates & info)</option>
+                        <option value="Event">📅 Event (Workshops, hackathons, meetings)</option>
+                        <option value="Urgent">🚨 Urgent (Immediate action / deadline today)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="content">Detailed Content</label>
-                    <textarea id="content" name="content" class="form-control" rows="4" placeholder="Enter full announcement message..." required></textarea>
+                    <label for="title">Message Title</label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Mandatory Stand-up Meeting tomorrow" required>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Publish Announcement</button>
+                <div class="form-group">
+                    <label for="content">Detailed Content</label>
+                    <textarea id="content" name="content" class="form-control" rows="4" placeholder="Enter full message details..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Publish Message</button>
             </form>
         </div>
 
-        <h3>Centralized All-Clubs Announcements Board</h3>
+        <script>
+        function updateNoticeNotice() {
+            var scope = document.getElementById('scope').value;
+            var help = document.getElementById('private_notice_help');
+            if (scope === 'PRIVATE') {
+                help.style.display = 'block';
+            } else {
+                help.style.display = 'none';
+            }
+        }
+        </script>
+
+        <!-- Club Communication Navigation Tabs -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary filter-btn active" onclick="filterNotices('all', this)">All Channel Messages</button>
+            <button type="button" class="btn btn-secondary filter-btn" onclick="filterNotices('Announcement', this)">📢 Announcements</button>
+            <button type="button" class="btn btn-secondary filter-btn" onclick="filterNotices('Event', this)">📅 Events</button>
+            <button type="button" class="btn btn-secondary filter-btn" onclick="filterNotices('Urgent', this)">🚨 Urgent</button>
+            <button type="button" class="btn btn-secondary filter-btn" onclick="filterNotices('PRIVATE', this)">🔒 Private Messages</button>
+        </div>
+
+        <h3>Club Communication Feed</h3>
         <div style="margin-top: 20px;">
             <?php if (empty($announcements)): ?>
-                <p class="text-muted" style="font-style: italic;">No announcements published yet.</p>
+                <p class="text-muted" style="font-style: italic;">No communication records found for your club.</p>
             <?php else: ?>
                 <div class="card-grid" style="grid-template-columns: 1fr; gap: 20px;">
                     <?php foreach ($announcements as $ann): ?>
                         <?php
-                            $priority = !empty($ann['priority']) ? $ann['priority'] : 'General';
+                            $priority = !empty($ann['priority']) ? $ann['priority'] : 'Announcement';
+                            if ($priority === 'General') { $priority = 'Announcement'; }
                             $badgeColor = 'var(--primary-color)';
+                            $typeIcon = '📢';
                             if ($priority === 'Urgent') {
                                 $badgeColor = 'var(--danger)';
+                                $typeIcon = '🚨';
                             } elseif ($priority === 'Event') {
-                                $badgeColor = 'var(--info)';
+                                $badgeColor = '#0284c7';
+                                $typeIcon = '📅';
                             }
+
+                            $scope = $ann['scope'] ?? 'GLOBAL';
                             $sender = !empty($ann['sender_name']) ? $ann['sender_name'] : 'System Admin';
+
+                            if ($scope === 'GLOBAL') {
+                                $scopeLabel = '🌐 Global Broadcast';
+                                $scopeBg = '#334155';
+                            } elseif ($scope === 'PRIVATE') {
+                                $scopeLabel = '🔒 Private Channel Message';
+                                $scopeBg = '#7c3aed';
+                            } else {
+                                $scopeLabel = '🏛️ Club Notice (' . escape($sender) . ')';
+                                $scopeBg = '#0369a1';
+                            }
                         ?>
-                        <div class="feature-card" style="border-left: 4px solid <?php echo $badgeColor; ?>;">
+                        <div class="feature-card notice-item" data-type="<?php echo escape($priority); ?>" data-scope="<?php echo escape($scope); ?>" style="border-left: 5px solid <?php echo $badgeColor; ?>; <?php echo ($priority === 'Urgent') ? 'background-color: rgba(239, 68, 68, 0.05);' : ''; ?>">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span class="status-badge" style="background-color: var(--border-color); color: var(--text-main); padding: 4px 10px; font-weight: 600;">
-                                        🏛️ <?php echo escape($sender); ?>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span class="status-badge" style="background-color: <?php echo $scopeBg; ?>; color: #fff; padding: 4px 10px; font-weight: 600; border-radius: 6px;">
+                                        <?php echo $scopeLabel; ?>
                                     </span>
-                                    <span class="status-badge" style="background-color: <?php echo $badgeColor; ?>; color: #fff; padding: 4px 10px; font-weight: 600;">
-                                        📌 <?php echo escape($priority); ?>
+                                    <span class="status-badge" style="background-color: <?php echo $badgeColor; ?>; color: #fff; padding: 4px 10px; font-weight: 600; border-radius: 6px;">
+                                        <?php echo $typeIcon; ?> <?php echo escape($priority); ?>
                                     </span>
                                 </div>
                                 <span class="text-muted" style="font-size: 0.85rem;">🕒 <?php echo escape($ann['created_at']); ?></span>
@@ -172,7 +225,7 @@ try {
                                 <span class="text-muted" style="font-size: 0.85rem;">Posted by: <strong><?php echo escape($ann['publisher'] ?: 'System Admin'); ?></strong></span>
 
                                 <?php if (intval($ann['club_id']) === intval($clubId)): ?>
-                                    <form action="announcements.php" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this announcement?');">
+                                    <form action="announcements.php" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this message?');">
                                         <?php csrfInput(); ?>
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="announcement_id" value="<?php echo $ann['id']; ?>">
@@ -185,6 +238,29 @@ try {
                 </div>
             <?php endif; ?>
         </div>
+
+        <script>
+        function filterNotices(filter, btn) {
+            var buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(function(b) { b.classList.remove('active'); b.style.backgroundColor = '#334155'; });
+            btn.classList.add('active');
+            btn.style.backgroundColor = 'var(--primary-color)';
+
+            var items = document.querySelectorAll('.notice-item');
+            items.forEach(function(item) {
+                var itemType = item.getAttribute('data-type');
+                var itemScope = item.getAttribute('data-scope');
+
+                if (filter === 'all') {
+                    item.style.display = 'block';
+                } else if (filter === 'PRIVATE') {
+                    item.style.display = (itemScope === 'PRIVATE') ? 'block' : 'none';
+                } else {
+                    item.style.display = (itemType === filter) ? 'block' : 'none';
+                }
+            });
+        }
+        </script>
     </main>
 </div>
 

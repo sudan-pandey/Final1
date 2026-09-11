@@ -108,8 +108,9 @@ CREATE TABLE `attendance` (
 CREATE TABLE `announcements` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `club_id` INT DEFAULT NULL,
+  `scope` ENUM('GLOBAL', 'CLUB', 'PRIVATE') NOT NULL DEFAULT 'GLOBAL',
   `title` VARCHAR(150) NOT NULL,
-  `priority` ENUM('General', 'Urgent', 'Event') NOT NULL DEFAULT 'General',
+  `priority` ENUM('Announcement', 'Urgent', 'Event', 'General') NOT NULL DEFAULT 'Announcement',
   `content` TEXT NOT NULL,
   `created_by` INT NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -193,7 +194,7 @@ INSERT INTO `responsibilities` (`id`, `name`, `description`) VALUES
 -- Insert default Admin (Password: admin123)
 -- Hash generated via password_hash('admin123', PASSWORD_DEFAULT)
 INSERT INTO `users` (`id`, `full_name`, `email`, `password`, `role`, `status`) VALUES
-(1, 'College Admin', 'admin@admin.com', '$2y$10$oX3yvS0P2vC2ZpP.N/eD.OaOInP6vH8M3P78tGgU9IqJor080P8yG', 'admin', 'active');
+(1, 'College Admin', 'admin@admin.com', '$2y$10$8.6FqTXLq.d0eaR9tT6QReKMUE0Bljxa0g7/rJz5XEi.rqSFGvmEu', 'admin', 'active');
 
 -- Insert default Clubs
 INSERT INTO `clubs` (`id`, `name`, `description`, `club_head_id`) VALUES

@@ -16,9 +16,9 @@ try {
     $totalFeedback = $pdo->query("SELECT COUNT(*) FROM feedback")->fetchColumn();
 
     // Query recent activities / announcements
-    $recentAnnouncements = $pdo->query("SELECT a.*, c.name AS club_name
+    $recentAnnouncements = $pdo->query("SELECT a.*, COALESCE(c.name, 'Global System') AS club_name
                                         FROM announcements a
-                                        JOIN clubs c ON a.club_id = c.id
+                                        LEFT JOIN clubs c ON a.club_id = c.id
                                         ORDER BY a.created_at DESC LIMIT 5")->fetchAll();
 } catch (PDOException $e) {
     die("Query Error: " . htmlspecialchars($e->getMessage()));

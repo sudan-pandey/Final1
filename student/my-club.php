@@ -94,11 +94,11 @@ try {
         <?php endif; ?>
 
         <div class="feature-card" style="margin-bottom: 30px;">
-            <div style="display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap;">
-                <?php echo renderClubLogo($clubInfo['logo'] ?? null, $clubInfo['name'], 72); ?>
-                <div style="flex: 1; min-width: 240px;">
-                    <h3 style="margin-top: 0; margin-bottom: 8px;">Club Details</h3>
-                    <p style="margin-bottom: 12px;"><?php echo escape($clubInfo['description']); ?></p>
+            <div style="display: flex; align-items: stretch; gap: 24px; flex-wrap: wrap;">
+                <?php echo renderClubLogo($clubInfo['logo'] ?? null, $clubInfo['name'], [140, 180]); ?>
+                <div style="flex: 1; min-width: 240px; display: flex; flex-direction: column; justify-content: center;">
+                    <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 1.35rem;"><?php echo escape($clubInfo['name']); ?></h3>
+                    <p style="margin-bottom: 12px; color: var(--text-muted); line-height: 1.6;"><?php echo escape($clubInfo['description']); ?></p>
                     <div style="font-size: 0.95rem;">
                         <span class="text-muted">Club Head:</span>
                         <strong>

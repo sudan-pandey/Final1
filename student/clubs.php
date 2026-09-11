@@ -42,46 +42,43 @@ unset($_SESSION['one_club_modal']);
 
         <?php displayAlerts(); ?>
 
-        <div class="card-grid">
+        <div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));">
             <?php foreach ($clubs as $club): ?>
-                <div class="card">
-                    <div>
-                        <div style="display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px;">
-                            <?php echo renderClubLogo($club['logo'] ?? null, $club['name'], 56); ?>
-                            <div>
-                                <h3 style="margin-top: 0; margin-bottom: 4px;"><?php echo escape($club['name']); ?></h3>
-                                <div style="font-size: 0.85rem; color: var(--text-muted);">
-                                    Managed by <strong><?php echo $club['head_name'] ? escape($club['head_name']) : 'Unassigned'; ?></strong>
-                                </div>
+                <div class="card" style="display: flex; flex-direction: row; gap: 20px; align-items: stretch;">
+                    <div style="flex-shrink: 0; display: flex; align-items: stretch;">
+                        <?php echo renderClubLogo($club['logo'] ?? null, $club['name'], [140, 210]); ?>
+                    </div>
+                    <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 1.35rem; font-weight: 700;"><?php echo escape($club['name']); ?></h3>
+                            <p style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.95rem; line-height: 1.5;"><?php echo escape($club['description']); ?></p>
+                            <div style="font-size: 0.9rem; margin-bottom: 15px;">
+                                <div><span class="text-muted">Club Head:</span> <strong><?php echo $club['head_name'] ? escape($club['head_name']) : 'Unassigned'; ?></strong></div>
+                                <div><span class="text-muted">Total Active Members:</span> <strong><?php echo $club['member_count']; ?></strong></div>
                             </div>
                         </div>
-                        <p><?php echo escape($club['description']); ?></p>
-                        <div style="font-size: 0.9rem; margin-bottom: 20px;">
-                            <div><span class="text-muted">Club Head:</span> <strong><?php echo $club['head_name'] ? escape($club['head_name']) : 'Unassigned'; ?></strong></div>
-                            <div><span class="text-muted">Total Active Members:</span> <strong><?php echo $club['member_count']; ?></strong></div>
-                        </div>
-                    </div>
 
-                    <div style="margin-top: auto;">
-                        <?php if ($membership && intval($membership['club_id']) === intval($club['id'])): ?>
-                            <span class="status-badge status-active" style="display: block; text-align: center; padding: 8px;">✓ Your Active Club</span>
-                        <?php elseif ($pendingMembership && intval($pendingMembership['club_id']) === intval($club['id'])): ?>
-                            <span class="status-badge status-pending" style="display: block; text-align: center; padding: 8px; background: #f39c12; color: #fff;">⏳ Request Pending</span>
-                        <?php elseif ($membership): ?>
-                            <form action="join-club.php" method="POST">
-                                <?php csrfInput(); ?>
-                                <input type="hidden" name="club_id" value="<?php echo $club['id']; ?>">
-                                <button type="submit" class="btn btn-secondary" style="width: 100%;">Join Club</button>
-                            </form>
-                        <?php elseif ($pendingMembership): ?>
-                            <button class="btn btn-secondary" style="width: 100%; cursor: not-allowed;" disabled title="You have a pending request">Request Pending</button>
-                        <?php else: ?>
-                            <form action="join-club.php" method="POST">
-                                <?php csrfInput(); ?>
-                                <input type="hidden" name="club_id" value="<?php echo $club['id']; ?>">
-                                <button type="submit" class="btn btn-primary" style="width: 100%;">Join Club</button>
-                            </form>
-                        <?php endif; ?>
+                        <div style="margin-top: auto;">
+                            <?php if ($membership && intval($membership['club_id']) === intval($club['id'])): ?>
+                                <span class="status-badge status-active" style="display: block; text-align: center; padding: 8px;">✓ Your Active Club</span>
+                            <?php elseif ($pendingMembership && intval($pendingMembership['club_id']) === intval($club['id'])): ?>
+                                <span class="status-badge status-pending" style="display: block; text-align: center; padding: 8px; background: #f39c12; color: #fff;">⏳ Request Pending</span>
+                            <?php elseif ($membership): ?>
+                                <form action="join-club.php" method="POST">
+                                    <?php csrfInput(); ?>
+                                    <input type="hidden" name="club_id" value="<?php echo $club['id']; ?>">
+                                    <button type="submit" class="btn btn-secondary" style="width: 100%;">Join Club</button>
+                                </form>
+                            <?php elseif ($pendingMembership): ?>
+                                <button class="btn btn-secondary" style="width: 100%; cursor: not-allowed;" disabled title="You have a pending request">Request Pending</button>
+                            <?php else: ?>
+                                <form action="join-club.php" method="POST">
+                                    <?php csrfInput(); ?>
+                                    <input type="hidden" name="club_id" value="<?php echo $club['id']; ?>">
+                                    <button type="submit" class="btn btn-primary" style="width: 100%;">Join Club</button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>
