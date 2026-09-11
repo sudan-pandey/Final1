@@ -21,3 +21,10 @@ CREATE TABLE IF NOT EXISTS `announcement_reads` (
   FOREIGN KEY (`announcement_id`) REFERENCES `announcements` (`id`) ON DELETE CASCADE,
   FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `announcements`
+  ADD COLUMN IF NOT EXISTS `scope` ENUM('GLOBAL', 'CLUB', 'PRIVATE') NOT NULL DEFAULT 'GLOBAL' AFTER `club_id`,
+  MODIFY COLUMN `priority` ENUM('Announcement', 'Urgent', 'Event', 'General') NOT NULL DEFAULT 'Announcement';
+
+UPDATE `announcements` SET `scope` = 'CLUB' WHERE `club_id` IS NOT NULL;
+UPDATE `announcements` SET `priority` = 'Announcement' WHERE `priority` = 'General';

@@ -19,26 +19,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $action = $_POST['action'] ?? '';
 
         if ($action === 'create') {
-            $clubIdInput = $_POST['club_id'] ?? '';
-            $clubId = ($clubIdInput !== '' && $clubIdInput !== 'global') ? intval($clubIdInput) : null;
+            $scope = trim($_POST['scope'] ?? 'GLOBAL');
+            if (!in_array($scope, ['GLOBAL', 'CLUB', 'PRIVATE'])) {
+                $scope = 'GLOBAL';
+            }
+
+            $clubId = null;
+            if ($scope === 'CLUB') {
+                $clubIdInput = intval($_POST['club_id'] ?? 0);
+                if ($clubIdInput > 0) {
+                    $chkClub = $pdo->prepare("SELECT id FROM clubs WHERE id = ? LIMIT 1");
+                    $chkClub->execute([$clubIdInput]);
+                    if ($chkClub->fetch()) {
+                        $clubId = $clubIdInput;
+                    } else {
+                        $error = "Selected target club does not exist.";
+                    }
+                } else {
+                    $error = "Please select a target club for the dedicated club notice.";
+                }
+            }
+
             $title = trim($_POST['title'] ?? '');
-            $priority = trim($_POST['priority'] ?? 'General');
+            $priority = trim($_POST['priority'] ?? 'Announcement');
+            if (!in_array($priority, ['Announcement', 'Event', 'Urgent', 'General'])) {
+                $priority = 'Announcement';
+            }
             $content = trim($_POST['content'] ?? '');
 
-            if (empty($title) || empty($content)) {
-                $error = "Title and content are mandatory.";
-            } else {
-                try {
-                    $ins = $pdo->prepare("INSERT INTO announcements (club_id, title, priority, content, created_by) VALUES (?, ?, ?, ?, ?)");
-                    $ins->execute([$clubId, $title, $priority, $content, $userId]);
-                    $success = "Announcement broadcasted successfully!";
-                } catch (PDOException $e) {
+            if (empty($error)) {
+                if (empty($title) || empty($content)) {
+                    $error = "Title and content are mandatory.";
+                } else {
                     try {
-                        $ins = $pdo->prepare("INSERT INTO announcements (club_id, title, content, created_by) VALUES (?, ?, ?, ?)");
-                        $ins->execute([$clubId, $title, $content, $userId]);
+                        $ins = $pdo->prepare("INSERT INTO announcements (club_id, scope, title, priority, content, created_by) VALUES (?, ?, ?, ?, ?, ?)");
+                        $ins->execute([$clubId, $scope, $title, $priority, $content, $userId]);
                         $success = "Announcement broadcasted successfully!";
-                    } catch (PDOException $ex) {
-                        $error = "Database Error: " . $ex->getMessage();
+                    } catch (PDOException $e) {
+                        $error = "Database Error: " . $e->getMessage();
                     }
                 }
             }
@@ -103,7 +121,7 @@ try {
             <div class="alert alert-success"><?php echo escape($success); ?></div>
         <?php endif; ?>
 
-        <!-- Create Global Announcement Form -->
+        <!-- Create System Announcement Form -->
         <div class="feature-card" style="margin-top: 20px; margin-bottom: 30px;">
             <h3>Broadcast System Announcement</h3>
             <form action="announcements.php" method="POST" style="margin-top: 15px;">
@@ -111,9 +129,17 @@ try {
                 <input type="hidden" name="action" value="create">
 
                 <div class="form-group">
-                    <label for="club_id">Target Audience / Scope</label>
+                    <label for="scope">Audience / Scope</label>
+                    <select id="scope" name="scope" class="form-control" onchange="toggleClubSelectAdmin()">
+                        <option value="GLOBAL">🌐 Everyone / Global Broadcast</option>
+                        <option value="CLUB">🏛️ Specific Club Notice</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="target_club_group" style="display: none;">
+                    <label for="club_id">Target Club</label>
                     <select id="club_id" name="club_id" class="form-control">
-                        <option value="global">🌐 System-wide Broadcast (All Students & Clubs)</option>
+                        <option value="">-- Select Target Club --</option>
                         <?php foreach ($clubsList as $c): ?>
                             <option value="<?php echo $c['id']; ?>">🏛️ <?php echo escape($c['name']); ?></option>
                         <?php endforeach; ?>
@@ -121,17 +147,17 @@ try {
                 </div>
 
                 <div class="form-group">
-                    <label for="title">Announcement Title</label>
-                    <input type="text" id="title" name="title" class="form-control" placeholder="e.g. End of Semester Mid-Term Recess" required>
+                    <label for="priority">Notice Type</label>
+                    <select id="priority" name="priority" class="form-control">
+                        <option value="Announcement">📢 Announcement</option>
+                        <option value="Event">📅 Event</option>
+                        <option value="Urgent">🚨 Urgent</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="priority">Priority / Notice Tag</label>
-                    <select id="priority" name="priority" class="form-control">
-                        <option value="General">General</option>
-                        <option value="Urgent">Urgent</option>
-                        <option value="Event">Event</option>
-                    </select>
+                    <label for="title">Announcement Title</label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="e.g. End of Semester Mid-Term Recess" required>
                 </div>
 
                 <div class="form-group">
@@ -143,6 +169,18 @@ try {
             </form>
         </div>
 
+        <script>
+        function toggleClubSelectAdmin() {
+            var scopeSelect = document.getElementById('scope');
+            var clubGroup = document.getElementById('target_club_group');
+            if (scopeSelect.value === 'CLUB') {
+                clubGroup.style.display = 'block';
+            } else {
+                clubGroup.style.display = 'none';
+            }
+        }
+        </script>
+
         <h3>Centralized Notice Feed</h3>
         <div style="margin-top: 20px;">
             <?php if (empty($announcements)): ?>
@@ -151,23 +189,40 @@ try {
                 <div class="card-grid" style="grid-template-columns: 1fr; gap: 20px;">
                     <?php foreach ($announcements as $ann): ?>
                         <?php
-                            $priority = !empty($ann['priority']) ? $ann['priority'] : 'General';
+                            $priority = !empty($ann['priority']) ? $ann['priority'] : 'Announcement';
+                            if ($priority === 'General') { $priority = 'Announcement'; }
                             $badgeColor = 'var(--primary-color)';
+                            $typeIcon = '📢';
                             if ($priority === 'Urgent') {
                                 $badgeColor = 'var(--danger)';
+                                $typeIcon = '🚨';
                             } elseif ($priority === 'Event') {
-                                $badgeColor = 'var(--info)';
+                                $badgeColor = '#0284c7';
+                                $typeIcon = '📅';
                             }
+
+                            $scope = $ann['scope'] ?? 'GLOBAL';
                             $sender = !empty($ann['sender_name']) ? $ann['sender_name'] : 'System Admin';
+
+                            if ($scope === 'GLOBAL') {
+                                $scopeLabel = '🌐 Global Broadcast';
+                                $scopeBg = '#334155';
+                            } elseif ($scope === 'PRIVATE') {
+                                $scopeLabel = '🔒 Private Channel (' . escape($sender) . ')';
+                                $scopeBg = '#7c3aed';
+                            } else {
+                                $scopeLabel = '🏛️ Dedicated Club (' . escape($sender) . ')';
+                                $scopeBg = '#0369a1';
+                            }
                         ?>
                         <div class="feature-card" style="border-left: 4px solid <?php echo $badgeColor; ?>;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span class="status-badge" style="background-color: var(--border-color); color: var(--text-main); padding: 4px 10px; font-weight: 600;">
-                                        🏛️ <?php echo escape($sender); ?>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span class="status-badge" style="background-color: <?php echo $scopeBg; ?>; color: #fff; padding: 4px 10px; font-weight: 600; border-radius: 6px;">
+                                        <?php echo $scopeLabel; ?>
                                     </span>
-                                    <span class="status-badge" style="background-color: <?php echo $badgeColor; ?>; color: #fff; padding: 4px 10px; font-weight: 600;">
-                                        📌 <?php echo escape($priority); ?>
+                                    <span class="status-badge" style="background-color: <?php echo $badgeColor; ?>; color: #fff; padding: 4px 10px; font-weight: 600; border-radius: 6px;">
+                                        <?php echo $typeIcon; ?> <?php echo escape($priority); ?>
                                     </span>
                                 </div>
                                 <span class="text-muted" style="font-size: 0.85rem;">🕒 <?php echo escape($ann['created_at']); ?></span>
