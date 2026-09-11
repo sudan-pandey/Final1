@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'create') {
             $scope = trim($_POST['scope'] ?? 'CLUB');
-            if (!in_array($scope, ['CLUB', 'PRIVATE'])) {
+            if (!in_array($scope, ['GLOBAL', 'CLUB', 'PRIVATE'])) {
                 $scope = 'CLUB';
             }
 
@@ -44,9 +44,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Title and content cannot be blank.";
             } else {
                 try {
+                    $targetClubId = ($scope === 'GLOBAL') ? null : $clubId;
                     $ins = $pdo->prepare("INSERT INTO announcements (club_id, scope, title, priority, content, created_by) VALUES (?, ?, ?, ?, ?, ?)");
-                    $ins->execute([$clubId, $scope, $title, $priority, $content, $userId]);
-                    $success = ($scope === 'PRIVATE') ? "Private club message posted successfully!" : "Club announcement published successfully!";
+                    $ins->execute([$targetClubId, $scope, $title, $priority, $content, $userId]);
+                    if ($scope === 'GLOBAL') {
+                        $success = "General public announcement broadcasted globally to all students and members!";
+                    } elseif ($scope === 'PRIVATE') {
+                        $success = "Private club message posted successfully!";
+                    } else {
+                        $success = "Club announcement published successfully!";
+                    }
                 } catch (PDOException $e) {
                     $error = "Database Error: " . $e->getMessage();
                 }
@@ -121,10 +128,12 @@ try {
                 <div class="form-group">
                     <label for="scope">Channel / Audience</label>
                     <select id="scope" name="scope" class="form-control" onchange="updateNoticeNotice()">
+                        <option value="GLOBAL">🌐 General Public Broadcast (All Admins, Students & All Club Members)</option>
                         <option value="CLUB">🏛️ Standard Club Broadcast (All <?php echo escape($club['name']); ?> Members)</option>
                         <option value="PRIVATE">🔒 Private Communication Channel (Members of <?php echo escape($club['name']); ?> Only)</option>
                     </select>
                     <small id="private_notice_help" class="text-muted" style="display: none; margin-top: 5px; color: #a78bfa;">🔒 Private Channel Messages are restricted exclusively to authorized members of this club.</small>
+                    <small id="global_notice_help" class="text-muted" style="display: block; margin-top: 5px; color: #60a5fa;">🌐 General Public Messages are visible to everyone (Admins, Students, and Members of all clubs).</small>
                 </div>
 
                 <div class="form-group">
@@ -153,11 +162,17 @@ try {
         <script>
         function updateNoticeNotice() {
             var scope = document.getElementById('scope').value;
-            var help = document.getElementById('private_notice_help');
+            var pHelp = document.getElementById('private_notice_help');
+            var gHelp = document.getElementById('global_notice_help');
             if (scope === 'PRIVATE') {
-                help.style.display = 'block';
+                pHelp.style.display = 'block';
+                gHelp.style.display = 'none';
+            } else if (scope === 'GLOBAL') {
+                pHelp.style.display = 'none';
+                gHelp.style.display = 'block';
             } else {
-                help.style.display = 'none';
+                pHelp.style.display = 'none';
+                gHelp.style.display = 'none';
             }
         }
         </script>
