@@ -133,10 +133,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <div class="feature-card" style="margin-top: 25px;">
-            <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-                <?php echo renderClubLogo($club['logo'] ?? null, $club['name'], 90); ?>
+            <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                <?php echo renderClubLogo($club['logo'] ?? null, $club['name'], [140, 180]); ?>
                 <div>
-                    <h3 style="margin: 0;"><?php echo escape($club['name']); ?></h3>
+                    <h3 style="margin: 0; font-size: 1.5rem;"><?php echo escape($club['name']); ?></h3>
                     <p class="text-muted" style="margin-top: 5px; font-size: 0.95rem;">Managed by <?php echo escape($_SESSION['user_name'] ?? 'Club Head'); ?></p>
                 </div>
             </div>
