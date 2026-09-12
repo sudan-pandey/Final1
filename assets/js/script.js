@@ -1,5 +1,22 @@
 // Dynamic Interactions and Dark Mode System for College Club Management System
 
+// SVG Icons for Theme Toggle Button
+const sunIconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="5"></circle>
+    <line x1="12" y1="1" x2="12" y2="3"></line>
+    <line x1="12" y1="21" x2="12" y2="23"></line>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+    <line x1="1" y1="12" x2="3" y2="12"></line>
+    <line x1="21" y1="12" x2="23" y2="12"></line>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+</svg>`;
+
+const moonIconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+</svg>`;
+
 // Theme initialization prior to DOM load to prevent flash of wrong theme
 (function () {
     const savedTheme = localStorage.getItem('app-theme');
@@ -7,18 +24,41 @@
         document.documentElement.setAttribute('data-theme', savedTheme);
     } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
     }
 })();
 
+function updateThemeToggleUI(theme) {
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    if (!themeToggleBtn) return;
+
+    if (theme === 'dark') {
+        themeToggleBtn.innerHTML = sunIconSvg;
+        themeToggleBtn.setAttribute('title', 'Switch to Light Mode');
+        themeToggleBtn.setAttribute('aria-label', 'Switch to Light Mode');
+    } else {
+        themeToggleBtn.innerHTML = moonIconSvg;
+        themeToggleBtn.setAttribute('title', 'Switch to Dark Mode');
+        themeToggleBtn.setAttribute('aria-label', 'Switch to Dark Mode');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
+    // Initial UI Icon update based on applied theme
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    updateThemeToggleUI(currentTheme);
+
     // Dark Mode Switcher Handler
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     if (themeToggleBtn) {
         themeToggleBtn.addEventListener('click', function () {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('app-theme', newTheme);
+            const activeTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+            const targetTheme = activeTheme === 'dark' ? 'light' : 'dark';
+
+            document.documentElement.setAttribute('data-theme', targetTheme);
+            localStorage.setItem('app-theme', targetTheme);
+            updateThemeToggleUI(targetTheme);
         });
     }
 
