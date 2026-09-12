@@ -24,13 +24,18 @@ if (isset($_SESSION['user_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>College Club Management System - Campus Community Hub</title>
+    <title>College Club Management System - Campus Portal</title>
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="landing-body">
     <header class="landing-header">
         <div class="container header-container">
-            <h1 class="logo">🎯 ClubManager</h1>
+            <a href="index.php" class="logo">
+                <span class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                </span>
+                CampusClubs
+            </a>
             <nav class="landing-nav">
                 <a href="login.php" class="btn btn-outline">Login</a>
                 <a href="register.php" class="btn btn-primary">Register</a>
@@ -42,12 +47,12 @@ if (isset($_SESSION['user_id'])) {
         <section class="hero-section">
             <div class="container hero-container">
                 <div class="hero-content">
-                    <span class="badge">✨ BCA College Campus Hub</span>
-                    <h2>Your Campus Life, Perfectly Organized</h2>
-                    <p>Discover student clubs, explore upcoming workshops, RSVP to events, manage tasks, and connect with your college community—all in one place.</p>
+                    <span class="badge">🎓 College Club Portal</span>
+                    <h2>Your Campus Clubs, Perfectly Organized</h2>
+                    <p>Discover student clubs, explore upcoming workshops, RSVP to events, manage member tasks, and coordinate activities across campus—all in one place.</p>
                     <div class="hero-actions">
-                        <a href="register.php" class="btn btn-primary btn-lg">Join Campus Community</a>
-                        <a href="login.php" class="btn btn-secondary btn-lg">Access Portal</a>
+                        <a href="register.php" class="btn btn-primary btn-lg">Register Student Account</a>
+                        <a href="login.php" class="btn btn-secondary btn-lg">Login to Portal</a>
                     </div>
                 </div>
             </div>
@@ -55,7 +60,7 @@ if (isset($_SESSION['user_id'])) {
 
         <section class="features-section">
             <div class="container">
-                <h3 class="section-title">Built For Modern Student Life</h3>
+                <h3 class="section-title">Built For Campus Club Excellence</h3>
                 <div class="features-grid">
                     <div class="feature-card">
                         <div class="feature-icon">🛡️</div>

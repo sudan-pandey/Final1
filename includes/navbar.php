@@ -34,7 +34,12 @@ if (empty($photoUrl) && $role === 'club_head' && isset($pdo)) {
 ?>
 <header class="app-header">
     <div class="container header-container">
-        <a href="../index.php" class="logo">🎯 ClubManager</a>
+        <a href="../index.php" class="logo">
+            <span class="logo-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            </span>
+            CampusClubs
+        </a>
 
         <?php if (!empty($_SESSION['user_id'])): ?>
             <div class="header-profile-block">
