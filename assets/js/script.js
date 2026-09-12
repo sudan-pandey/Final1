@@ -1,6 +1,27 @@
-// Simple Dynamic Interactions for College Club Management System
+// Dynamic Interactions and Dark Mode System for College Club Management System
+
+// Theme initialization prior to DOM load to prevent flash of wrong theme
+(function () {
+    const savedTheme = localStorage.getItem('app-theme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+})();
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Dark Mode Switcher Handler
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', function () {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('app-theme', newTheme);
+        });
+    }
+
     // 1. Auto-dismiss Alert Blocks after 5 seconds
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(function (alert) {
