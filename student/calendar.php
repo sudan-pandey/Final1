@@ -35,7 +35,7 @@ $dayOfWeek = intval(date('w', $firstDayOfMonth)); // 0 (Sunday) to 6 (Saturday)
 
     <main class="main-content">
         <h2>Club Events Calendar</h2>
-        <p class="text-muted">Interactive visual agenda displaying monthly workshops and community activities.</p>
+        <p class="text-muted">Interactive visual agenda displaying monthly workshops and campus activities.</p>
 
         <div class="feature-card" style="margin-top: 20px;">
             <h3 style="text-align: center; margin-bottom: 20px;">📅 <?php echo $monthName; ?></h3>
