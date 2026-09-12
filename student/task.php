@@ -181,7 +181,7 @@ try {
                 <?php endif; ?>
 
                 <!-- Comment Form -->
-                <div class="feature-card" style="background-color: var(--bg-dark);">
+                <div class="feature-card" style="background-color: var(--bg-card-hover);">
                     <form action="task.php?id=<?php echo $taskId; ?>" method="POST">
                         <?php csrfInput(); ?>
                         <input type="hidden" name="action" value="add_comment">

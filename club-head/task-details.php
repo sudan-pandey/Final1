@@ -138,7 +138,7 @@ try {
                     <?php endforeach; ?>
                 <?php endif; ?>
 
-                <div class="feature-card" style="background-color: var(--bg-dark);">
+                <div class="feature-card" style="background-color: var(--bg-card-hover);">
                     <form action="task-details.php?id=<?php echo $taskId; ?>" method="POST">
                         <?php csrfInput(); ?>
                         <div class="form-group">
