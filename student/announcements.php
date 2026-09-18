@@ -126,8 +126,10 @@ try {
                                 <span class="text-muted" style="font-size: 0.85rem;">🕒 <?php echo escape($ann['created_at']); ?></span>
                             </div>
 
-                            <h3 style="margin-bottom: 10px; color: var(--text-main); font-size: 1.25rem;"><?php echo escape($ann['title']); ?></h3>
-                            <p style="color: var(--text-main); margin-bottom: 15px; line-height: 1.6; white-space: pre-wrap;"><?php echo escape($ann['content']); ?></p>
+                            <h4 style="margin-bottom: 10px; color: var(--text-main); font-size: 1.25rem; word-break: break-word; overflow-wrap: anywhere;"><?php echo escape($ann['title']); ?></h4>
+                            <div class="expandable-text">
+                                <p class="text-content" style="color: var(--text-main); margin-bottom: 0; line-height: 1.6; white-space: pre-wrap;"><?php echo escape($ann['content']); ?></p>
+                            </div>
 
                             <div style="border-top: 1px dashed var(--border-color); padding-top: 10px; color: var(--text-muted); font-size: 0.85rem;">
                                 Posted by: <strong><?php echo escape($ann['publisher'] ?: 'System Admin'); ?></strong>

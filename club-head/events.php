@@ -106,8 +106,10 @@ try {
                     <div class="card">
                         <div>
                             <span class="badge" style="margin-bottom: 10px;"><?php echo strtoupper(escape($event['status'])); ?></span>
-                            <h3><?php echo escape($event['title']); ?></h3>
-                            <p><?php echo escape($event['description']); ?></p>
+                            <h3 style="word-break: break-word; overflow-wrap: anywhere;"><?php echo escape($event['title']); ?></h3>
+                            <div class="expandable-text">
+                                <p class="text-content"><?php echo escape($event['description']); ?></p>
+                            </div>
 
                             <div style="font-size: 0.9rem; margin-bottom: 20px; color: var(--text-muted);">
                                 <div>📍 <strong>Location:</strong> <?php echo escape($event['location']); ?></div>

@@ -87,7 +87,45 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 3. Accessible Modal Dialog controls (for pages with event creation modal)
+    // 3. Announcement & Long Text "Read More / Read Less" Interactive Toggle
+    function initExpandableTexts() {
+        const expandableElems = document.querySelectorAll('.expandable-text');
+        expandableElems.forEach(function (container) {
+            const content = container.querySelector('.text-content');
+            let toggleBtn = container.querySelector('.btn-read-more');
+
+            if (!content) return;
+
+            // Check if scrollHeight exceeds clientHeight (or line threshold)
+            const isOverflowing = content.scrollHeight > content.clientHeight + 8 || content.textContent.length > 220;
+
+            if (isOverflowing) {
+                container.classList.add('collapsed');
+                if (!toggleBtn) {
+                    toggleBtn = document.createElement('button');
+                    toggleBtn.type = 'button';
+                    toggleBtn.className = 'btn-read-more';
+                    toggleBtn.innerHTML = 'Read more <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+                    container.appendChild(toggleBtn);
+                }
+
+                toggleBtn.onclick = function () {
+                    const isCollapsed = container.classList.contains('collapsed');
+                    if (isCollapsed) {
+                        container.classList.remove('collapsed');
+                        toggleBtn.innerHTML = 'Read less <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>';
+                    } else {
+                        container.classList.add('collapsed');
+                        toggleBtn.innerHTML = 'Read more <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+                    }
+                };
+            }
+        });
+    }
+
+    initExpandableTexts();
+
+    // 4. Accessible Modal Dialog controls (for pages with event creation modal)
     const modalOverlay = document.getElementById('eventModalOverlay');
     const modalContent = modalOverlay ? modalOverlay.querySelector('.modal-content') : null;
     const modalCloseBtn = document.getElementById('modalCloseBtn');
