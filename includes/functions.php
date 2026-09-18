@@ -92,7 +92,7 @@ function getUnreadAnnouncementsCount($pdo, $userId) {
             $stmt = $pdo->prepare("SELECT COUNT(*)
                                    FROM announcements a
                                    LEFT JOIN announcement_reads ar ON a.id = ar.announcement_id AND ar.user_id = ?
-                                   WHERE ar.announcement_id IS NULL");
+                                   WHERE ar.announcement_id IS NULL AND a.scope != 'PRIVATE'");
             $stmt->execute([$userId]);
         } elseif ($userRole === 'club_head') {
             $club = getOwnClub($pdo, $userId);

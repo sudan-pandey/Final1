@@ -90,6 +90,7 @@ try {
                          FROM announcements a
                          LEFT JOIN clubs c ON a.club_id = c.id
                          LEFT JOIN users u ON a.created_by = u.id
+                         WHERE a.scope != 'PRIVATE'
                          ORDER BY a.created_at DESC");
     $announcements = $stmt->fetchAll();
 

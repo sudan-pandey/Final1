@@ -61,9 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'delete') {
             $annId = intval($_POST['announcement_id'] ?? 0);
             if ($annId > 0) {
-                // Verify ownership: must belong to head's club
-                $chk = $pdo->prepare("SELECT id FROM announcements WHERE id = ? AND club_id = ? LIMIT 1");
-                $chk->execute([$annId, $clubId]);
+                // Verify ownership: created by this user or belongs to head's club
+                $chk = $pdo->prepare("SELECT id FROM announcements WHERE id = ? AND (created_by = ? OR club_id = ?) LIMIT 1");
+                $chk->execute([$annId, $userId, $clubId]);
                 if ($chk->fetch()) {
                     $del = $pdo->prepare("DELETE FROM announcements WHERE id = ?");
                     $del->execute([$annId]);
@@ -241,7 +241,7 @@ try {
                             <div style="border-top: 1px dashed var(--border-color); padding-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                                 <span class="text-muted" style="font-size: 0.85rem;">Posted by: <strong><?php echo escape($ann['publisher'] ?: 'System Admin'); ?></strong></span>
 
-                                <?php if (intval($ann['club_id']) === intval($clubId)): ?>
+                                <?php if (intval($ann['created_by']) === intval($userId) || (!empty($ann['club_id']) && intval($ann['club_id']) === intval($clubId))): ?>
                                     <form action="announcements.php" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this message?');">
                                         <?php csrfInput(); ?>
                                         <input type="hidden" name="action" value="delete">
