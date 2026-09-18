@@ -215,7 +215,7 @@ try {
                                 $scopeBg = '#0369a1';
                             }
                         ?>
-                        <div class="feature-card" style="border-left: 4px solid <?php echo $badgeColor; ?>;">
+                        <div class="feature-card" style="border-left: 5px solid <?php echo $badgeColor; ?>; <?php echo ($priority === 'Urgent') ? 'background-color: rgba(239, 68, 68, 0.05);' : ''; ?>">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     <span class="status-badge" style="background-color: <?php echo $scopeBg; ?>; color: #fff; padding: 4px 10px; font-weight: 600; border-radius: 6px;">
@@ -228,8 +228,10 @@ try {
                                 <span class="text-muted" style="font-size: 0.85rem;">🕒 <?php echo escape($ann['created_at']); ?></span>
                             </div>
 
-                            <h3 style="margin-bottom: 10px; color: var(--text-main); font-size: 1.25rem;"><?php echo escape($ann['title']); ?></h3>
-                            <p style="color: var(--text-main); margin-bottom: 15px; line-height: 1.6; white-space: pre-wrap;"><?php echo escape($ann['content']); ?></p>
+                            <h4 style="margin-bottom: 10px; color: var(--text-main); font-size: 1.25rem; word-break: break-word; overflow-wrap: anywhere;"><?php echo escape($ann['title']); ?></h4>
+                            <div class="expandable-text">
+                                <p class="text-content" style="color: var(--text-main); margin-bottom: 0; line-height: 1.6; white-space: pre-wrap;"><?php echo escape($ann['content']); ?></p>
+                            </div>
 
                             <div style="border-top: 1px dashed var(--border-color); padding-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                                 <span class="text-muted" style="font-size: 0.85rem;">Posted by: <strong><?php echo escape($ann['publisher'] ?: 'System Admin'); ?></strong></span>

@@ -52,6 +52,7 @@ $dayOfWeek = intval(date('w', $firstDayOfMonth)); // 0 (Sunday) to 6 (Saturday)
             <div class="feature-card" style="margin-top: 20px;">
                 <h3 style="text-align: center; margin-bottom: 20px;">📅 <?php echo $monthName; ?> - <?php echo escape($club['name']); ?></h3>
 
+                <div class="calendar-wrapper">
                 <div class="calendar-grid">
                     <!-- Day Headers -->
                     <div class="calendar-day-header">Sun</div>
@@ -86,6 +87,7 @@ $dayOfWeek = intval(date('w', $firstDayOfMonth)); // 0 (Sunday) to 6 (Saturday)
                             <?php endforeach; ?>
                         </div>
                     <?php endfor; ?>
+                </div>
                 </div>
             </div>
         <?php endif; ?>
