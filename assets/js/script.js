@@ -89,15 +89,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 3. Announcement & Long Text "Read More / Read Less" Interactive Toggle
     function initExpandableTexts() {
-        const expandableElems = document.querySelectorAll('.expandable-text');
+        // Standard text content expansion (announcements, event descriptions, etc.)
+        const expandableElems = document.querySelectorAll('.expandable-text:not(.calendar-events-container)');
         expandableElems.forEach(function (container) {
             const content = container.querySelector('.text-content');
             let toggleBtn = container.querySelector('.btn-read-more');
 
             if (!content) return;
 
-            // Check if scrollHeight exceeds clientHeight (or line threshold)
-            const isOverflowing = content.scrollHeight > content.clientHeight + 8 || content.textContent.length > 220;
+            // Check overflow based on line clamping / max height threshold or character count
+            const isOverflowing = content.scrollHeight > content.clientHeight + 8 || content.textContent.trim().length > 180;
 
             if (isOverflowing) {
                 container.classList.add('collapsed');
@@ -117,6 +118,41 @@ document.addEventListener('DOMContentLoaded', function () {
                     } else {
                         container.classList.add('collapsed');
                         toggleBtn.innerHTML = 'Read more <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+                    }
+                };
+            }
+        });
+
+        // Calendar day event tags expansion
+        const calendarContainers = document.querySelectorAll('.calendar-events-container');
+        calendarContainers.forEach(function (container) {
+            const listContent = container.querySelector('.events-list-content');
+            let toggleBtn = container.querySelector('.btn-read-more');
+
+            if (!listContent) return;
+
+            const tags = listContent.querySelectorAll('.event-tag');
+            const totalTagLength = Array.from(tags).reduce(function (sum, el) { return sum + el.textContent.trim().length; }, 0);
+            const isOverflowing = tags.length > 2 || listContent.scrollHeight > 56 || totalTagLength > 35;
+
+            if (isOverflowing) {
+                container.classList.add('collapsed');
+                if (!toggleBtn) {
+                    toggleBtn = document.createElement('button');
+                    toggleBtn.type = 'button';
+                    toggleBtn.className = 'btn-read-more';
+                    toggleBtn.innerHTML = 'Read more <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+                    container.appendChild(toggleBtn);
+                }
+
+                toggleBtn.onclick = function () {
+                    const isCollapsed = container.classList.contains('collapsed');
+                    if (isCollapsed) {
+                        container.classList.remove('collapsed');
+                        toggleBtn.innerHTML = 'Read less <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>';
+                    } else {
+                        container.classList.add('collapsed');
+                        toggleBtn.innerHTML = 'Read more <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
                     }
                 };
             }

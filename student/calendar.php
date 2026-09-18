@@ -68,11 +68,17 @@ $dayOfWeek = intval(date('w', $firstDayOfMonth)); // 0 (Sunday) to 6 (Saturday)
                     ?>
                     <div class="calendar-day" <?php echo ($currentDateString === date('Y-m-d')) ? 'style="border-color: var(--primary-color); background-color: rgba(79, 70, 229, 0.05);"' : ''; ?>>
                         <div class="day-num"><?php echo $day; ?></div>
-                        <?php foreach ($dayEvents as $ev): ?>
-                            <a href="events.php" class="event-tag" title="<?php echo escape($ev['title']); ?>">
-                                <?php echo escape($ev['title']); ?>
-                            </a>
-                        <?php endforeach; ?>
+                        <?php if (!empty($dayEvents)): ?>
+                            <div class="expandable-text calendar-events-container">
+                                <div class="events-list-content">
+                                    <?php foreach ($dayEvents as $ev): ?>
+                                        <a href="events.php" class="event-tag" title="<?php echo escape($ev['title']); ?>">
+                                            <?php echo escape($ev['title']); ?>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 <?php endfor; ?>
             </div>
