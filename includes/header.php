@@ -22,4 +22,4 @@ require_once __DIR__ . '/functions.php';
     <!-- Use base relative path to access assets properly regardless of nested directory -->
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-<body>
+<body<?php echo !empty($_SESSION['user_role']) ? ' data-role="' . htmlspecialchars($_SESSION['user_role']) . '"' : ''; ?>>
