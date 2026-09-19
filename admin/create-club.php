@@ -8,6 +8,14 @@ requireRole('admin');
 
 $error = '';
 
+try {
+    // Fetch active candidates for Club Head
+    $candidateStmt = $pdo->query("SELECT id, full_name, email FROM users WHERE role = 'club_head' AND status = 'active' ORDER BY full_name ASC");
+    $candidates = $candidateStmt->fetchAll();
+} catch (PDOException $e) {
+    die("Database Error: " . htmlspecialchars($e->getMessage()));
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrfToken = $_POST['csrf_token'] ?? '';
     if (!verifyCSRFToken($csrfToken)) {
@@ -15,24 +23,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
+        $headIdInput = $_POST['club_head_id'] ?? '';
+        $newHeadId = $headIdInput === '' ? null : intval($headIdInput);
 
         if (empty($name)) {
             $error = "Club name cannot be blank.";
         } else {
             try {
+                $pdo->beginTransaction();
+
                 // Check uniqueness on name
                 $stmt = $pdo->prepare("SELECT id FROM clubs WHERE name = ? LIMIT 1");
                 $stmt->execute([$name]);
                 if ($stmt->fetch()) {
-                    $error = "A club with this name already exists.";
-                } else {
-                    $insertStmt = $pdo->prepare("INSERT INTO clubs (name, description) VALUES (?, ?)");
-                    $insertStmt->execute([$name, $description]);
-                    header("Location: clubs.php?success=" . urlencode("Club created successfully!"));
-                    exit;
+                    throw new Exception("A club with this name already exists.");
                 }
-            } catch (PDOException $e) {
-                $error = "Database Error: " . $e->getMessage();
+
+                // If Club Head selected, strictly verify they do not head another club
+                if ($newHeadId !== null) {
+                    $checkStmt = $pdo->prepare("SELECT id FROM users WHERE id = ? AND role = 'club_head' AND status = 'active' LIMIT 1");
+                    $checkStmt->execute([$newHeadId]);
+                    if (!$checkStmt->fetch()) {
+                        throw new Exception("Selected candidate must be an active user with the role 'club_head'.");
+                    }
+
+                    $existsStmt = $pdo->prepare("SELECT name FROM clubs WHERE club_head_id = ? LIMIT 1");
+                    $existsStmt->execute([$newHeadId]);
+                    $clashingClub = $existsStmt->fetch();
+                    if ($clashingClub) {
+                        throw new Exception("This user is already heading the '" . $clashingClub['name'] . "' club. A user cannot be the Club Head of 2 clubs at a time.");
+                    }
+                }
+
+                $insertStmt = $pdo->prepare("INSERT INTO clubs (name, description, club_head_id) VALUES (?, ?, ?)");
+                $insertStmt->execute([$name, $description, $newHeadId]);
+
+                $pdo->commit();
+                header("Location: clubs.php?success=" . urlencode("Club created successfully!"));
+                exit;
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $error = $e->getMessage();
             }
         }
     }
@@ -62,10 +95,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="form-group">
                 <label for="description">Description</label>
-                <textarea id="description" name="description" class="form-control" rows="5" placeholder="Provide a short synopsis of the club goals and activities..."><?php echo isset($_POST['description']) ? escape($_POST['description']) : ''; ?></textarea>
+                <textarea id="description" name="description" class="form-control" rows="4" placeholder="Provide a short synopsis of the club goals and activities..."><?php echo isset($_POST['description']) ? escape($_POST['description']) : ''; ?></textarea>
             </div>
 
-            <div style="display: flex; gap: 10px;">
+            <div class="form-group">
+                <label for="club_head_id">Assign Club Head (Optional)</label>
+                <select id="club_head_id" name="club_head_id" class="form-control">
+                    <option value="">-- No Head Assigned --</option>
+                    <?php foreach ($candidates as $cand): ?>
+                        <option value="<?php echo $cand['id']; ?>" <?php echo (isset($_POST['club_head_id']) && intval($_POST['club_head_id']) === intval($cand['id'])) ? 'selected' : ''; ?>>
+                            <?php echo escape($cand['full_name']); ?> (<?php echo escape($cand['email']); ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <small class="text-muted" style="display: block; margin-top: 5px;">
+                    A user cannot head more than 1 club at a time.
+                </small>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="submit" class="btn btn-primary">Create Club</button>
                 <a href="clubs.php" class="btn btn-secondary">Cancel</a>
             </div>

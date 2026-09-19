@@ -1,16 +1,7 @@
-[Fri Sep 11 17:54:44 2026] PHP 8.3.6 Development Server (http://localhost:8080) started
-[Fri Sep 11 17:54:53 2026] [::1]:40388 Accepted
-[Fri Sep 11 17:54:53 2026] [::1]:40388 [200]: HEAD /index.php
-[Fri Sep 11 17:54:53 2026] [::1]:40388 Closing
-[Fri Sep 11 17:55:34 2026] [::1]:38820 Accepted
-[Fri Sep 11 17:55:34 2026] [::1]:38820 [200]: GET /index.php
-[Fri Sep 11 17:55:34 2026] [::1]:38820 Closing
-[Fri Sep 11 17:55:35 2026] [::1]:38836 Accepted
-[Fri Sep 11 17:55:35 2026] [::1]:38836 [200]: GET /assets/css/style.css
-[Fri Sep 11 17:55:35 2026] [::1]:38836 Closing
-[Fri Sep 11 17:55:37 2026] [::1]:38842 Accepted
-[Fri Sep 11 17:55:37 2026] [::1]:38842 [200]: GET /login.php
-[Fri Sep 11 17:55:37 2026] [::1]:38842 Closing
-[Fri Sep 11 17:55:38 2026] [::1]:38856 Accepted
-[Fri Sep 11 17:55:38 2026] [::1]:38856 [200]: GET /register.php
-[Fri Sep 11 17:55:38 2026] [::1]:38856 Closing
+[Sat Sep 19 03:49:27 2026] PHP 8.3.6 Development Server (http://localhost:8080) started
+[Sat Sep 19 03:49:29 2026] [::1]:33260 Accepted
+[Sat Sep 19 03:49:29 2026] [::1]:33260 [200]: HEAD /
+[Sat Sep 19 03:49:29 2026] [::1]:33260 Closing
+[Sat Sep 19 03:50:26 2026] [::1]:40190 Accepted
+[Sat Sep 19 03:50:27 2026] [::1]:40190 [200]: GET /login.php
+[Sat Sep 19 03:50:27 2026] [::1]:40190 Closing

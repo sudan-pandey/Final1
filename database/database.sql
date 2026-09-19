@@ -2,6 +2,7 @@
 -- For Tribhuvan University BCA 4th Semester Project
 
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS `system_settings`;
 DROP TABLE IF EXISTS `announcement_reads`;
 DROP TABLE IF EXISTS `task_comments`;
 DROP TABLE IF EXISTS `tasks`;
@@ -201,3 +202,13 @@ INSERT INTO `clubs` (`id`, `name`, `description`, `club_head_id`) VALUES
 (1, 'Computer Club', 'Club for tech enthusiasts, organizing coding challenges, seminars, and web development workshops.', NULL),
 (2, 'Sports Club', 'Organizing intra-college athletic matches, football tournaments, and indoor games.', NULL),
 (3, 'Cultural Club', 'Promoting art, drama, music, and literary contributions through exhibitions and talent shows.', NULL);
+
+-- 13. System Settings Table
+CREATE TABLE IF NOT EXISTS `system_settings` (
+  `setting_key` VARCHAR(50) PRIMARY KEY,
+  `setting_value` VARCHAR(255) NOT NULL,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `system_settings` (`setting_key`, `setting_value`) VALUES ('max_student_clubs', '5')
+ON DUPLICATE KEY UPDATE `setting_value` = `setting_value`;

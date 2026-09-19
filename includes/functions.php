@@ -2,6 +2,45 @@
 // Common Utility Functions
 
 /**
+ * Fetches a system setting value by key, with a default fallback
+ *
+ * @param PDO $pdo
+ * @param string $key
+ * @param mixed $default
+ * @return mixed
+ */
+function getSystemSetting($pdo, $key, $default = null) {
+    if (!$pdo) return $default;
+    try {
+        $stmt = $pdo->prepare("SELECT setting_value FROM system_settings WHERE setting_key = ? LIMIT 1");
+        $stmt->execute([$key]);
+        $val = $stmt->fetchColumn();
+        return $val !== false ? $val : $default;
+    } catch (Exception $e) {
+        return $default;
+    }
+}
+
+/**
+ * Sets or updates a system setting value by key
+ *
+ * @param PDO $pdo
+ * @param string $key
+ * @param mixed $value
+ * @return bool
+ */
+function setSystemSetting($pdo, $key, $value) {
+    if (!$pdo) return false;
+    try {
+        $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?)
+                               ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+        return $stmt->execute([$key, strval($value)]);
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+/**
  * Escapes HTML to protect against XSS
  * @param string $value
  * @return string
