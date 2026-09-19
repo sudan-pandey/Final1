@@ -12,11 +12,12 @@ $events = [];
 if ($club) {
     $clubId = $club['id'];
     try {
-        // Fetch non-cancelled events for this club
-        $stmt = $pdo->prepare("SELECT id, title, event_date, location, status
-                               FROM events
-                               WHERE club_id = ? AND status != 'cancelled'
-                               ORDER BY event_date ASC");
+        // Fetch non-cancelled events with details for this club
+        $stmt = $pdo->prepare("SELECT e.id, e.title, e.description, e.event_date, e.location, e.status, c.name AS club_name
+                               FROM events e
+                               JOIN clubs c ON e.club_id = c.id
+                               WHERE e.club_id = ? AND e.status != 'cancelled'
+                               ORDER BY e.event_date ASC");
         $stmt->execute([$clubId]);
         $events = $stmt->fetchAll();
     } catch (PDOException $e) {
@@ -84,7 +85,14 @@ $dayOfWeek = intval(date('w', $firstDayOfMonth)); // 0 (Sunday) to 6 (Saturday)
                                 <div class="expandable-text calendar-events-container">
                                     <div class="events-list-content">
                                         <?php foreach ($dayEvents as $ev): ?>
-                                            <a href="events.php" class="event-tag" title="<?php echo escape($ev['title']); ?>">
+                                        <a href="events.php" class="event-tag event-hover-trigger"
+                                           data-event-title="<?php echo escape($ev['title']); ?>"
+                                           data-event-club="<?php echo escape($ev['club_name']); ?>"
+                                           data-event-date="<?php echo escape($ev['event_date']); ?>"
+                                           data-event-location="<?php echo escape($ev['location']); ?>"
+                                           data-event-status="<?php echo escape($ev['status']); ?>"
+                                           data-event-description="<?php echo escape($ev['description']); ?>"
+                                           title="<?php echo escape($ev['title']); ?>">
                                                 <?php echo escape($ev['title']); ?>
                                             </a>
                                         <?php endforeach; ?>

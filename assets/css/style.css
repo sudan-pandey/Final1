@@ -1319,6 +1319,85 @@ tr:last-child td {
     border-bottom-right-radius: var(--radius-lg);
 }
 
+/* Floating Event Details Tooltip Popover (Shown strictly on hover) */
+.event-hover-popover {
+    position: fixed;
+    z-index: 99999;
+    width: 320px;
+    max-width: 90vw;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.25), 0 4px 10px rgba(0, 0, 0, 0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    pointer-events: none; /* Allows cursor interaction without sticking */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px) scale(0.97);
+    transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s;
+}
+
+.event-hover-popover.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.event-hover-popover .popover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.event-hover-popover .popover-club {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    background-color: var(--primary-light);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+}
+
+.event-hover-popover .popover-status {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.event-hover-popover .popover-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 8px;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.event-hover-popover .popover-details {
+    font-size: 0.825rem;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 8px;
+}
+
+.event-hover-popover .popover-desc {
+    font-size: 0.825rem;
+    color: var(--text-main);
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 /* Footer */
 footer, .app-footer, .landing-footer {
     text-align: center;
@@ -1373,11 +1452,12 @@ footer, .app-footer, .landing-footer {
     }
 
     .logo {
-        font-size: 1.15rem;
+        font-size: 1.1rem;
     }
 
     .header-actions {
         gap: 8px;
+        flex-wrap: wrap;
     }
 
     .header-profile-block {
@@ -1388,7 +1468,7 @@ footer, .app-footer, .landing-footer {
 
     .profile-name {
         font-size: 0.8rem;
-        max-width: 120px;
+        max-width: 110px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1409,8 +1489,16 @@ footer, .app-footer, .landing-footer {
     }
 
     .stats-grid {
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-        gap: 12px;
+        grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: 14px;
+    }
+
+    .stat-card .value {
+        font-size: 1.65rem;
     }
 
     .card-grid {
@@ -1444,5 +1532,15 @@ footer, .app-footer, .landing-footer {
     .calendar-day .event-tag {
         font-size: 0.65rem;
         padding: 2px 4px;
+    }
+
+    .modal-content {
+        max-width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .form-control {
+        font-size: 16px; /* Prevents auto-zoom on iOS mobile devices */
     }
 }

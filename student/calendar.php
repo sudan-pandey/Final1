@@ -10,8 +10,12 @@ $userId = $_SESSION['user_id'];
 try {
     $membership = getActiveMembership($pdo, $userId);
 
-    // Fetch upcoming events to list on calendar
-    $stmt = $pdo->query("SELECT id, title, event_date, location, status FROM events WHERE status != 'cancelled' ORDER BY event_date ASC");
+    // Fetch upcoming events with details to list on calendar
+    $stmt = $pdo->query("SELECT e.id, e.title, e.description, e.event_date, e.location, e.status, c.name AS club_name
+                         FROM events e
+                         JOIN clubs c ON e.club_id = c.id
+                         WHERE e.status != 'cancelled'
+                         ORDER BY e.event_date ASC");
     $events = $stmt->fetchAll();
 } catch (PDOException $e) {
     die("Database Error: " . htmlspecialchars($e->getMessage()));
@@ -72,7 +76,14 @@ $dayOfWeek = intval(date('w', $firstDayOfMonth)); // 0 (Sunday) to 6 (Saturday)
                             <div class="expandable-text calendar-events-container">
                                 <div class="events-list-content">
                                     <?php foreach ($dayEvents as $ev): ?>
-                                        <a href="events.php" class="event-tag" title="<?php echo escape($ev['title']); ?>">
+                                        <a href="events.php" class="event-tag event-hover-trigger"
+                                           data-event-title="<?php echo escape($ev['title']); ?>"
+                                           data-event-club="<?php echo escape($ev['club_name']); ?>"
+                                           data-event-date="<?php echo escape($ev['event_date']); ?>"
+                                           data-event-location="<?php echo escape($ev['location']); ?>"
+                                           data-event-status="<?php echo escape($ev['status']); ?>"
+                                           data-event-description="<?php echo escape($ev['description']); ?>"
+                                           title="<?php echo escape($ev['title']); ?>">
                                             <?php echo escape($ev['title']); ?>
                                         </a>
                                     <?php endforeach; ?>

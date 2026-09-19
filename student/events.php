@@ -43,7 +43,14 @@ try {
                 <p class="text-muted" style="font-style: italic;">No events have been posted yet.</p>
             <?php else: ?>
                 <?php foreach ($events as $event): ?>
-                    <div class="card">
+                    <div class="card event-hover-trigger"
+                         data-event-title="<?php echo escape($event['title']); ?>"
+                         data-event-club="<?php echo escape($event['club_name']); ?>"
+                         data-event-date="<?php echo escape($event['event_date']); ?>"
+                         data-event-location="<?php echo escape($event['location']); ?>"
+                         data-event-status="<?php echo escape($event['status']); ?>"
+                         data-event-description="<?php echo escape($event['description']); ?>"
+                         data-event-regs="<?php echo escape($event['reg_count']); ?>">
                         <div>
                             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                                 <?php echo renderClubLogo($event['club_logo'] ?? null, $event['club_name'], 36); ?>

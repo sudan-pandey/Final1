@@ -1,7 +1,16 @@
-[Sat Sep 19 03:49:27 2026] PHP 8.3.6 Development Server (http://localhost:8080) started
-[Sat Sep 19 03:49:29 2026] [::1]:33260 Accepted
-[Sat Sep 19 03:49:29 2026] [::1]:33260 [200]: HEAD /
-[Sat Sep 19 03:49:29 2026] [::1]:33260 Closing
-[Sat Sep 19 03:50:26 2026] [::1]:40190 Accepted
-[Sat Sep 19 03:50:27 2026] [::1]:40190 [200]: GET /login.php
-[Sat Sep 19 03:50:27 2026] [::1]:40190 Closing
+[Sat Sep 19 05:13:16 2026] PHP 8.3.6 Development Server (http://localhost:8080) started
+[Sat Sep 19 05:13:18 2026] [::1]:58896 Accepted
+[Sat Sep 19 05:13:18 2026] [::1]:58896 [200]: HEAD /index.php
+[Sat Sep 19 05:13:18 2026] [::1]:58896 Closing
+[Sat Sep 19 05:14:07 2026] [::1]:44560 Accepted
+[Sat Sep 19 05:14:07 2026] [::1]:44560 [200]: GET /index.php
+[Sat Sep 19 05:14:07 2026] [::1]:44560 Closing
+[Sat Sep 19 05:14:07 2026] [::1]:44572 Accepted
+[Sat Sep 19 05:14:07 2026] [::1]:44586 Accepted
+[Sat Sep 19 05:14:07 2026] [::1]:44572 [200]: GET /assets/css/style.css
+[Sat Sep 19 05:14:07 2026] [::1]:44586 [200]: GET /assets/js/script.js
+[Sat Sep 19 05:14:07 2026] [::1]:44572 Closing
+[Sat Sep 19 05:14:07 2026] [::1]:44586 Closing
+[Sat Sep 19 05:14:09 2026] [::1]:44598 Accepted
+[Sat Sep 19 05:14:09 2026] [::1]:44598 [200]: GET /ajax/counts.php
+[Sat Sep 19 05:14:09 2026] [::1]:44598 Closing

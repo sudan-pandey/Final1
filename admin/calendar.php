@@ -6,8 +6,8 @@ require_once '../includes/functions.php';
 requireRole('admin');
 
 try {
-    // Fetch upcoming events from all clubs to list on calendar
-    $stmt = $pdo->query("SELECT e.id, e.title, e.event_date, e.location, e.status, c.name AS club_name
+    // Fetch upcoming events with details from all clubs to list on calendar
+    $stmt = $pdo->query("SELECT e.id, e.title, e.description, e.event_date, e.location, e.status, c.name AS club_name
                            FROM events e
                            JOIN clubs c ON e.club_id = c.id
                            WHERE e.status != 'cancelled'
@@ -71,7 +71,14 @@ $dayOfWeek = intval(date('w', $firstDayOfMonth)); // 0 (Sunday) to 6 (Saturday)
                             <div class="expandable-text calendar-events-container">
                                 <div class="events-list-content">
                                     <?php foreach ($dayEvents as $ev): ?>
-                                        <a href="events.php" class="event-tag" title="<?php echo escape($ev['club_name'] . ': ' . $ev['title']); ?>">
+                                        <a href="events.php" class="event-tag event-hover-trigger"
+                                           data-event-title="<?php echo escape($ev['title']); ?>"
+                                           data-event-club="<?php echo escape($ev['club_name']); ?>"
+                                           data-event-date="<?php echo escape($ev['event_date']); ?>"
+                                           data-event-location="<?php echo escape($ev['location']); ?>"
+                                           data-event-status="<?php echo escape($ev['status']); ?>"
+                                           data-event-description="<?php echo escape($ev['description']); ?>"
+                                           title="<?php echo escape($ev['club_name'] . ': ' . $ev['title']); ?>">
                                             [<?php echo escape($ev['club_name']); ?>] <?php echo escape($ev['title']); ?>
                                         </a>
                                     <?php endforeach; ?>
