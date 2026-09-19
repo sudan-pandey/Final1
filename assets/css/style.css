@@ -20,17 +20,17 @@
 
     /* Text Colors - High Contrast for Readability */
     --text-main: #0f172a;      /* Slate 900 for high visibility */
-    --text-muted: #334155;     /* Slate 700 for clear secondary text */
+    --text-muted: #475569;     /* Slate 600 for clear secondary text */
     --text-dim: #64748b;       /* Slate 500 for tertiary notes */
     --text-white: #ffffff;
 
     /* Borders & Dividers */
     --border-color: #cbd5e1;
     --border-light: #e2e8f0;
-    --border-focus: #6366f1;
+    --border-focus: #4f46e5;
 
     /* Primary Accent & Grading */
-    --primary-color: #4338ca;
+    --primary-color: #4f46e5;
     --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
     --primary-hover-gradient: linear-gradient(135deg, #4338ca 0%, #2e2a85 100%);
     --primary-active-gradient: linear-gradient(135deg, #3730a3 0%, #1e1b4b 100%);
@@ -127,6 +127,58 @@ html[data-theme="dark"], [data-theme="dark"] {
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.6);
+}
+
+/* Role-Specific Design Mappings */
+body[data-role="student"] {
+    --secondary-accent: #0891b2;
+}
+
+body[data-role="student"] .calendar-day .event-tag {
+    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+}
+
+body[data-role="club_head"] {
+    --info: #0ea5e9;
+    --info-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    --info-light: #e0f2fe;
+    --info-text: #0369a1;
+}
+
+html[data-theme="dark"] body[data-role="club_head"],
+[data-theme="dark"] body[data-role="club_head"] {
+    --info-light: #0c4a6e;
+    --info-text: #7dd3fc;
+}
+
+body[data-role="admin"] {
+    --primary-color: #3730a3;
+    --primary-gradient: linear-gradient(135deg, #3730a3 0%, #1e1b4b 100%);
+    --primary-hover-gradient: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
+    --primary-active-gradient: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+    --border-focus: #3730a3;
+}
+
+html[data-theme="dark"] body[data-role="admin"],
+[data-theme="dark"] body[data-role="admin"] {
+    --primary-color: #6366f1;
+    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    --primary-hover-gradient: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+    --primary-active-gradient: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+    --border-focus: #818cf8;
+}
+
+/* Club Member specific accents for active membership & My Club elements */
+.member-badge,
+.status-active-member {
+    background-color: var(--success-light);
+    color: var(--success-text);
+    border: 1px solid rgba(5, 150, 105, 0.3);
+}
+
+.btn-member {
+    background: var(--success-gradient);
+    color: #ffffff !important;
 }
 
 /* System Preference Default ONLY when no explicit attribute is set */
