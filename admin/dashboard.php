@@ -19,6 +19,7 @@ try {
     $recentAnnouncements = $pdo->query("SELECT a.*, COALESCE(c.name, 'Global System') AS club_name
                                         FROM announcements a
                                         LEFT JOIN clubs c ON a.club_id = c.id
+                                        WHERE a.scope != 'PRIVATE'
                                         ORDER BY a.created_at DESC LIMIT 5")->fetchAll();
 } catch (PDOException $e) {
     die("Query Error: " . htmlspecialchars($e->getMessage()));
