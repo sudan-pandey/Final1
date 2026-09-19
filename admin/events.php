@@ -45,7 +45,13 @@ try {
                         </tr>
                     <?php else: ?>
                         <?php foreach ($events as $event): ?>
-                            <tr>
+                            <tr class="event-hover-trigger"
+                                data-event-title="<?php echo escape($event['title']); ?>"
+                                data-event-club="<?php echo escape($event['club_name']); ?>"
+                                data-event-date="<?php echo escape($event['event_date']); ?>"
+                                data-event-location="<?php echo escape($event['location']); ?>"
+                                data-event-status="<?php echo escape($event['status']); ?>"
+                                data-event-description="<?php echo escape($event['description']); ?>">
                                 <td><?php echo escape($event['id']); ?></td>
                                 <td><strong><?php echo escape($event['club_name']); ?></strong></td>
                                 <td><?php echo escape($event['title']); ?></td>

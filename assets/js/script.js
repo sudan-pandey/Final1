@@ -161,7 +161,190 @@ document.addEventListener('DOMContentLoaded', function () {
 
     initExpandableTexts();
 
-    // 4. Accessible Modal Dialog controls (for pages with event creation modal)
+    // 4. Event Hover Popover Controller (Displays details strictly on hover across all sections)
+    function initEventHoverPopover() {
+        let popover = document.getElementById('globalEventHoverPopover');
+        if (!popover) {
+            popover = document.createElement('div');
+            popover.id = 'globalEventHoverPopover';
+            popover.className = 'event-hover-popover';
+            document.body.appendChild(popover);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function showPopover(target, e) {
+            const title = target.getAttribute('data-event-title');
+            if (!title) return;
+
+            const club = target.getAttribute('data-event-club') || 'Campus Club';
+            const date = target.getAttribute('data-event-date') || '';
+            const location = target.getAttribute('data-event-location') || '';
+            const status = target.getAttribute('data-event-status') || 'UPCOMING';
+            const description = target.getAttribute('data-event-description') || '';
+            const regs = target.getAttribute('data-event-regs');
+
+            let statusClass = 'status-pending';
+            if (status.toLowerCase() === 'upcoming' || status.toLowerCase() === 'completed') {
+                statusClass = 'status-active';
+            } else if (status.toLowerCase() === 'cancelled') {
+                statusClass = 'status-inactive';
+            }
+
+            popover.innerHTML = `
+                <div class="popover-header">
+                    <span class="popover-club">${escapeHtml(club)}</span>
+                    <span class="status-badge ${statusClass} popover-status">${escapeHtml(status.toUpperCase())}</span>
+                </div>
+                <div class="popover-title">${escapeHtml(title)}</div>
+                <div class="popover-details">
+                    ${date ? `<div>📅 <strong>Date:</strong> ${escapeHtml(date)}</div>` : ''}
+                    ${location ? `<div>📍 <strong>Location:</strong> ${escapeHtml(location)}</div>` : ''}
+                    ${regs !== null && regs !== undefined ? `<div>👥 <strong>Registrants:</strong> ${escapeHtml(regs)}</div>` : ''}
+                </div>
+                ${description ? `<div class="popover-desc">${escapeHtml(description)}</div>` : ''}
+            `;
+
+            popover.classList.add('active');
+            positionPopover(e);
+        }
+
+        function positionPopover(e) {
+            if (!popover.classList.contains('active')) return;
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            const popoverWidth = popover.offsetWidth || 320;
+            const popoverHeight = popover.offsetHeight || 200;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            let left = mouseX + 16;
+            let top = mouseY + 16;
+
+            if (left + popoverWidth > windowWidth - 12) {
+                left = mouseX - popoverWidth - 16;
+            }
+            if (left < 12) left = 12;
+
+            if (top + popoverHeight > windowHeight - 12) {
+                top = mouseY - popoverHeight - 16;
+            }
+            if (top < 12) top = 12;
+
+            popover.style.left = left + 'px';
+            popover.style.top = top + 'px';
+        }
+
+        function hidePopover() {
+            popover.classList.remove('active');
+        }
+
+        document.addEventListener('mouseover', function (e) {
+            const trigger = e.target.closest('.event-hover-trigger, [data-event-title]');
+            if (trigger) {
+                showPopover(trigger, e);
+            }
+        });
+
+        document.addEventListener('mousemove', function (e) {
+            const trigger = e.target.closest('.event-hover-trigger, [data-event-title]');
+            if (trigger) {
+                positionPopover(e);
+            }
+        });
+
+        document.addEventListener('mouseout', function (e) {
+            const trigger = e.target.closest('.event-hover-trigger, [data-event-title]');
+            if (trigger) {
+                if (!e.relatedTarget || !trigger.contains(e.relatedTarget)) {
+                    hidePopover();
+                }
+            }
+        });
+    }
+
+    initEventHoverPopover();
+
+    // 5. Lightweight Procedural Real-time Polling System
+    function startRealtimePolling() {
+        const isSubdir = window.location.pathname.includes('/student/') ||
+                         window.location.pathname.includes('/club-head/') ||
+                         window.location.pathname.includes('/admin/');
+        const ajaxBase = isSubdir ? '../ajax/' : 'ajax/';
+
+        function updateSidebarBadges(badges) {
+            if (!badges || typeof badges !== 'object') return;
+
+            Object.keys(badges).forEach(function (route) {
+                const count = parseInt(badges[route], 10) || 0;
+                const link = document.querySelector(`.sidebar-menu a[href="${route}"], .sidebar-menu a[href$="${route}"]`);
+                if (!link) return;
+
+                let badgeEl = link.querySelector('.sidebar-badge');
+                if (count > 0) {
+                    if (!badgeEl) {
+                        badgeEl = document.createElement('span');
+                        badgeEl.className = 'sidebar-badge';
+                        link.appendChild(badgeEl);
+                    }
+                    if (badgeEl.textContent !== String(count)) {
+                        badgeEl.textContent = count;
+                    }
+                } else if (badgeEl) {
+                    badgeEl.remove();
+                }
+            });
+        }
+
+        function updateDashboardCounts(counts) {
+            if (!counts || typeof counts !== 'object') return;
+
+            Object.keys(counts).forEach(function (key) {
+                const valueElems = document.querySelectorAll(`[data-stat="${key}"]`);
+                valueElems.forEach(function (el) {
+                    const newVal = String(counts[key]);
+                    if (el.textContent.trim() !== newVal) {
+                        el.style.transition = 'transform 0.15s ease, opacity 0.15s ease';
+                        el.style.opacity = '0.3';
+                        el.style.transform = 'scale(0.9)';
+                        setTimeout(function () {
+                            el.textContent = newVal;
+                            el.style.opacity = '1';
+                            el.style.transform = 'scale(1)';
+                        }, 150);
+                    }
+                });
+            });
+        }
+
+        function fetchFastUpdates() {
+            fetch(ajaxBase + 'counts.php', { cache: 'no-store' })
+                .then(function (res) {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(function (data) {
+                    if (data.badges) updateSidebarBadges(data.badges);
+                    if (data.counts) updateDashboardCounts(data.counts);
+                })
+                .catch(function () {});
+        }
+
+        setTimeout(fetchFastUpdates, 1000);
+        setInterval(fetchFastUpdates, 7000);
+    }
+
+    startRealtimePolling();
+
+    // 6. Accessible Modal Dialog controls (for pages with event creation modal)
     const modalOverlay = document.getElementById('eventModalOverlay');
     const modalContent = modalOverlay ? modalOverlay.querySelector('.modal-content') : null;
     const modalCloseBtn = document.getElementById('modalCloseBtn');

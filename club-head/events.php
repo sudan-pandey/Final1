@@ -103,7 +103,14 @@ try {
         <?php else: ?>
             <div class="card-grid">
                 <?php foreach ($events as $event): ?>
-                    <div class="card">
+                    <div class="card event-hover-trigger"
+                         data-event-title="<?php echo escape($event['title']); ?>"
+                         data-event-club="<?php echo escape($club['name']); ?>"
+                         data-event-date="<?php echo escape($event['event_date']); ?>"
+                         data-event-location="<?php echo escape($event['location']); ?>"
+                         data-event-status="<?php echo escape($event['status']); ?>"
+                         data-event-description="<?php echo escape($event['description']); ?>"
+                         data-event-regs="<?php echo escape($event['reg_count']); ?>">
                         <div>
                             <span class="badge" style="margin-bottom: 10px;"><?php echo strtoupper(escape($event['status'])); ?></span>
                             <h3 style="word-break: break-word; overflow-wrap: anywhere;"><?php echo escape($event['title']); ?></h3>
