@@ -9,15 +9,32 @@ requireRole('student');
 $userId = $_SESSION['user_id'];
 
 try {
-    // Verify active membership
-    $membership = getActiveMembership($pdo, $userId);
+    // Verify all active memberships for this student
+    $activeMemberships = getActiveMemberships($pdo, $userId);
 
-    if (!$membership) {
-        header("Location: clubs.php?error=" . urlencode("Please join a club first to view its members."));
+    if (empty($activeMemberships)) {
+        header("Location: clubs.php?error=" . urlencode("Please join a club first to view its details."));
         exit;
     }
 
-    $clubId = $membership['club_id'];
+    // Determine target active club ID from GET query parameter or default to first
+    $targetClubId = intval($_GET['club_id'] ?? 0);
+    $membership = null;
+
+    if ($targetClubId > 0) {
+        foreach ($activeMemberships as $m) {
+            if (intval($m['club_id']) === $targetClubId) {
+                $membership = $m;
+                break;
+            }
+        }
+    }
+
+    if (!$membership) {
+        $membership = $activeMemberships[0];
+    }
+
+    $clubId = intval($membership['club_id']);
 
     // Fetch club info & head
     $stmtClub = $pdo->prepare("SELECT c.*, u.full_name AS head_name, u.email AS head_email
@@ -73,12 +90,24 @@ try {
     <?php require_once '../includes/sidebar.php'; ?>
 
     <main class="main-content">
+        <?php if (count($activeMemberships) > 1): ?>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <span style="font-weight: 600; color: var(--text-muted);">Your Joined Clubs:</span>
+                <?php foreach ($activeMemberships as $m): ?>
+                    <a href="my-club.php?club_id=<?php echo $m['club_id']; ?>"
+                       class="btn <?php echo intval($m['club_id']) === $clubId ? 'btn-primary' : 'btn-outline'; ?> btn-sm">
+                        <?php echo escape($m['club_name']); ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
         <div class="flex-header">
             <h2><?php echo escape($clubInfo['name']); ?></h2>
             <?php if ($membership['leave_status'] === 'pending'): ?>
                 <button class="btn btn-secondary btn-sm" disabled style="cursor: not-allowed;">⏳ Leave Request Pending</button>
             <?php else: ?>
-                <form action="my-club.php" method="POST" onsubmit="return confirm('Are you sure you want to request to leave this club? Your request will be reviewed by the Club Head.');">
+                <form action="my-club.php?club_id=<?php echo $clubId; ?>" method="POST" onsubmit="return confirm('Are you sure you want to request to leave this club? Your request will be reviewed by the Club Head.');">
                     <?php csrfInput(); ?>
                     <input type="hidden" name="action" value="leave">
                     <button type="submit" class="btn btn-danger btn-sm">Request to Leave Club</button>

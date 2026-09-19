@@ -8,13 +8,20 @@ requireRole('student');
 $userId = $_SESSION['user_id'];
 
 try {
-    // Check active membership
-    $membership = getActiveMembership($pdo, $userId);
+    // Get Admin configured Max Clubs setting (1-5, default 5)
+    $maxClubs = intval(getSystemSetting($pdo, 'max_student_clubs', 5));
 
-    // Check pending membership request
-    $stmtPendingReq = $pdo->prepare("SELECT m.*, c.name AS club_name FROM memberships m JOIN clubs c ON m.club_id = c.id WHERE m.user_id = ? AND m.status = 'pending' LIMIT 1");
-    $stmtPendingReq->execute([$userId]);
-    $pendingMembership = $stmtPendingReq->fetch();
+    // Fetch all active memberships for this student
+    $activeMemberships = getActiveMemberships($pdo, $userId);
+    $activeClubIds = array_map('intval', array_column($activeMemberships, 'club_id'));
+
+    // Fetch all pending membership requests for this student
+    $stmtPending = $pdo->prepare("SELECT club_id FROM memberships WHERE user_id = ? AND status = 'pending'");
+    $stmtPending->execute([$userId]);
+    $pendingClubIds = array_map('intval', $stmtPending->fetchAll(PDO::FETCH_COLUMN));
+
+    // Check if user is a Club Head
+    $isClubHead = (($_SESSION['user_role'] ?? '') === 'club_head') || (bool)getOwnClub($pdo, $userId);
 
     // Fetch all clubs
     $stmt = $pdo->query("SELECT c.*, u.full_name AS head_name,
@@ -27,8 +34,8 @@ try {
     die("Database Error: " . htmlspecialchars($e->getMessage()));
 }
 
-$oneClubModal = $_SESSION['one_club_modal'] ?? null;
-unset($_SESSION['one_club_modal']);
+$maxClubsModal = $_SESSION['max_clubs_modal'] ?? null;
+unset($_SESSION['max_clubs_modal']);
 ?>
 <?php require_once '../includes/header.php'; ?>
 <?php require_once '../includes/navbar.php'; ?>
@@ -38,12 +45,17 @@ unset($_SESSION['one_club_modal']);
 
     <main class="main-content">
         <h2>Browse Clubs Directory</h2>
-        <p class="text-muted">A student can belong to <strong>only one active club at a time</strong>. Enforced on the server.</p>
+        <p class="text-muted">A student can belong to up to <strong><?php echo $maxClubs; ?> active club(s)</strong> at a time. Enforced on the server.</p>
 
         <?php displayAlerts(); ?>
 
         <div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));">
             <?php foreach ($clubs as $club): ?>
+                <?php
+                $clubId = intval($club['id']);
+                $isMember = in_array($clubId, $activeClubIds);
+                $isPending = in_array($clubId, $pendingClubIds);
+                ?>
                 <div class="card" style="display: flex; flex-direction: row; gap: 20px; align-items: stretch;">
                     <div style="flex-shrink: 0; display: flex; align-items: stretch;">
                         <?php echo renderClubLogo($club['logo'] ?? null, $club['name'], [140, 210]); ?>
@@ -59,22 +71,16 @@ unset($_SESSION['one_club_modal']);
                         </div>
 
                         <div style="margin-top: auto;">
-                            <?php if ($membership && intval($membership['club_id']) === intval($club['id'])): ?>
+                            <?php if ($isMember): ?>
                                 <span class="status-badge status-active" style="display: block; text-align: center; padding: 8px;">✓ Your Active Club</span>
-                            <?php elseif ($pendingMembership && intval($pendingMembership['club_id']) === intval($club['id'])): ?>
+                            <?php elseif ($isPending): ?>
                                 <span class="status-badge status-pending" style="display: block; text-align: center; padding: 8px; background: #f39c12; color: #fff;">⏳ Request Pending</span>
-                            <?php elseif ($membership): ?>
-                                <form action="join-club.php" method="POST">
-                                    <?php csrfInput(); ?>
-                                    <input type="hidden" name="club_id" value="<?php echo $club['id']; ?>">
-                                    <button type="submit" class="btn btn-secondary" style="width: 100%;">Join Club</button>
-                                </form>
-                            <?php elseif ($pendingMembership): ?>
-                                <button class="btn btn-secondary" style="width: 100%; cursor: not-allowed;" disabled title="You have a pending request">Request Pending</button>
+                            <?php elseif ($isClubHead): ?>
+                                <button class="btn btn-secondary" style="width: 100%; cursor: not-allowed;" disabled title="Club Heads cannot join other clubs as members">Club Head Restricted</button>
                             <?php else: ?>
                                 <form action="join-club.php" method="POST">
                                     <?php csrfInput(); ?>
-                                    <input type="hidden" name="club_id" value="<?php echo $club['id']; ?>">
+                                    <input type="hidden" name="club_id" value="<?php echo $clubId; ?>">
                                     <button type="submit" class="btn btn-primary" style="width: 100%;">Join Club</button>
                                 </form>
                             <?php endif; ?>
@@ -86,16 +92,16 @@ unset($_SESSION['one_club_modal']);
     </main>
 </div>
 
-<?php if ($oneClubModal): ?>
-<div id="oneClubModal" class="modal-overlay">
+<?php if ($maxClubsModal): ?>
+<div id="maxClubsModal" class="modal-overlay">
     <div class="modal-content" style="text-align: center;">
-        <h3 style="margin-top: 0; color: var(--text-main);">Club Membership</h3>
+        <h3 style="margin-top: 0; color: var(--text-main);">Club Limit Reached</h3>
         <p style="margin: 20px 0; font-size: 1rem; line-height: 1.6; color: var(--text-muted);">
-            You can join only one club at a time.<br><br>
-            You are currently a member of <strong style="color: var(--text-main);"><?php echo escape($oneClubModal['active_club']); ?></strong>.<br><br>
-            Please leave your current club and wait for approval before joining another club.
+            You can belong to a maximum of <strong style="color: var(--text-main);"><?php echo escape($maxClubsModal['max_clubs']); ?> active club(s)</strong> at a time.<br><br>
+            You are currently an active member of <strong style="color: var(--text-main);"><?php echo escape($maxClubsModal['current_count']); ?></strong> club(s).<br><br>
+            To join a new club, please request to leave one of your existing active clubs first.
         </p>
-        <button onclick="document.getElementById('oneClubModal').style.display='none'" class="btn btn-primary" style="min-width: 120px;">OK</button>
+        <button onclick="document.getElementById('maxClubsModal').style.display='none'" class="btn btn-primary" style="min-width: 120px;">OK</button>
     </div>
 </div>
 <?php endif; ?>

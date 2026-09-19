@@ -39,3 +39,13 @@ ALTER TABLE `announcements`
 
 -- Standardize general priority entries
 UPDATE `announcements` SET `priority` = 'Announcement' WHERE `priority` = 'General';
+
+-- 5. System settings table
+CREATE TABLE IF NOT EXISTS `system_settings` (
+  `setting_key` VARCHAR(50) PRIMARY KEY,
+  `setting_value` VARCHAR(255) NOT NULL,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `system_settings` (`setting_key`, `setting_value`) VALUES ('max_student_clubs', '5')
+ON DUPLICATE KEY UPDATE `setting_value` = `setting_value`;

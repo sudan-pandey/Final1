@@ -44,7 +44,7 @@ function requireRole($allowed_roles) {
 }
 
 /**
- * Get active student club membership
+ * Get active student club membership (first active)
  * @param PDO $pdo
  * @param int $user_id
  * @return array|false
@@ -57,6 +57,23 @@ function getActiveMembership($pdo, $user_id) {
                            WHERE m.user_id = ? AND m.status = 'active' LIMIT 1");
     $stmt->execute([$user_id]);
     return $stmt->fetch();
+}
+
+/**
+ * Get all active student club memberships
+ * @param PDO $pdo
+ * @param int $user_id
+ * @return array
+ */
+function getActiveMemberships($pdo, $user_id) {
+    $stmt = $pdo->prepare("SELECT m.*, c.name AS club_name, r.name AS responsibility_name
+                           FROM memberships m
+                           JOIN clubs c ON m.club_id = c.id
+                           LEFT JOIN responsibilities r ON m.responsibility_id = r.id
+                           WHERE m.user_id = ? AND m.status = 'active'
+                           ORDER BY c.name ASC");
+    $stmt->execute([$user_id]);
+    return $stmt->fetchAll();
 }
 
 /**

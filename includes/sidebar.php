@@ -69,6 +69,7 @@ if ($role === 'admin') {
         ['route' => 'announcements.php', 'label' => 'Announcements', 'icon' => 'announcements', 'badge' => $unreadAnnouncements],
         ['route' => 'feedback.php', 'label' => 'Feedback & Ratings', 'icon' => 'feedback'],
         ['route' => 'tasks.php', 'label' => 'Task Assignments', 'icon' => 'tasks', 'badge' => $pendingTasks],
+        ['route' => 'profile.php', 'label' => 'Profile Settings', 'icon' => 'profile'],
     ];
 } elseif ($role === 'club_head') {
     $unreadAnnouncements = isset($pdo) ? getUnreadAnnouncementsCount($pdo, $currentUserId) : 0;
@@ -85,6 +86,7 @@ if ($role === 'admin') {
         ['route' => 'announcements.php', 'label' => 'Announcements', 'icon' => 'announcements', 'badge' => $unreadAnnouncements],
         ['route' => 'feedback.php', 'label' => 'Feedback Reviews', 'icon' => 'feedback'],
         ['route' => 'tasks.php', 'label' => 'Task Coordination', 'icon' => 'tasks', 'badge' => $pendingTasks],
+        ['route' => 'profile.php', 'label' => 'Profile Settings', 'icon' => 'profile'],
     ];
 } elseif ($role === 'student') {
     if (!isset($membership) && isset($pdo) && !empty($currentUserId)) {
