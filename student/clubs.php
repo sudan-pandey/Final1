@@ -49,14 +49,14 @@ unset($_SESSION['max_clubs_modal']);
 
         <?php displayAlerts(); ?>
 
-        <div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));">
+        <div class="card-grid">
             <?php foreach ($clubs as $club): ?>
                 <?php
                 $clubId = intval($club['id']);
                 $isMember = in_array($clubId, $activeClubIds);
                 $isPending = in_array($clubId, $pendingClubIds);
                 ?>
-                <div class="card" style="display: flex; flex-direction: row; gap: 20px; align-items: stretch;">
+                <div class="card club-card-item">
                     <div style="flex-shrink: 0; display: flex; align-items: stretch;">
                         <?php echo renderClubLogo($club['logo'] ?? null, $club['name'], [140, 210]); ?>
                     </div>

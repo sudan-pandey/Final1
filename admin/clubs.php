@@ -60,12 +60,12 @@ try {
             <div class="alert alert-success"><?php echo escape($success); ?></div>
         <?php endif; ?>
 
-        <div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));">
+        <div class="card-grid">
             <?php if (empty($clubs)): ?>
                 <p class="text-muted" style="font-style: italic;">No clubs registered inside the system.</p>
             <?php else: ?>
                 <?php foreach ($clubs as $club): ?>
-                    <div class="card" style="display: flex; flex-direction: row; gap: 20px; align-items: stretch;">
+                    <div class="card club-card-item">
                         <div style="flex-shrink: 0; display: flex; align-items: stretch;">
                             <?php echo renderClubLogo($club['logo'] ?? null, $club['name'], [140, 210]); ?>
                         </div>
