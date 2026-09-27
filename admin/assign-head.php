@@ -44,6 +44,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $pdo->beginTransaction();
 
+            // Check if removing or replacing an existing Club Head while upcoming events exist
+            $currentHeadId = $club['club_head_id'] !== null ? intval($club['club_head_id']) : null;
+            if ($currentHeadId !== null && $currentHeadId !== $newHeadId) {
+                $eventCheckStmt = $pdo->prepare("SELECT COUNT(*) FROM events WHERE club_id = ? AND status = 'upcoming'");
+                $eventCheckStmt->execute([$clubId]);
+                $upcomingCount = $eventCheckStmt->fetchColumn();
+
+                if ($upcomingCount > 0) {
+                    throw new Exception("Cannot remove or replace the Club Head while the club has upcoming events scheduled. Please manage or complete the upcoming events first.");
+                }
+            }
+
             // If a head is being assigned, verify the user possesses role = club_head
             if ($newHeadId !== null) {
                 $checkStmt = $pdo->prepare("SELECT id FROM users WHERE id = ? AND role = 'club_head' AND status = 'active' LIMIT 1");
