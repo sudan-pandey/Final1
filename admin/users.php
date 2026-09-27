@@ -29,6 +29,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         // If elevating or demoting, check constraints. E.g. demoting club_head means removing club assignments.
                         $pdo->beginTransaction();
                         try {
+                            if ($newRole !== 'club_head') {
+                                // Check if user is currently assigned as head of any club with upcoming events
+                                $checkEventsStmt = $pdo->prepare("
+                                    SELECT c.name
+                                    FROM clubs c
+                                    JOIN events e ON c.id = e.club_id
+                                    WHERE c.club_head_id = ? AND e.status = 'upcoming'
+                                    LIMIT 1
+                                ");
+                                $checkEventsStmt->execute([$targetUserId]);
+                                $clashingClub = $checkEventsStmt->fetch();
+
+                                if ($clashingClub) {
+                                    throw new Exception("Cannot change role for this Club Head because their assigned club ('" . $clashingClub['name'] . "') has upcoming events scheduled.");
+                                }
+                            }
+
                             $stmt = $pdo->prepare("UPDATE users SET role = ? WHERE id = ?");
                             $stmt->execute([$newRole, $targetUserId]);
 
